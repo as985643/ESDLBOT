@@ -1,0 +1,195 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div style="float:left; width:50%;" id="param">
+	<div style="clear:both; margin:50px 0 0 0 ">
+		<div style="float:left; width:40%;">
+			菇架 w<br><input id="inputsx" type="text" value="50">
+		</div>
+		<div style="float:left; width:40%;">
+			菇架 h<br><input id="inputsy" type="text" value="120"><br>
+		</div>
+	</div>
+	            
+	<div style="clear:both;">
+		<div style="float:left; width:40%;">
+			直走道<br><input id="col_lengh" type="text" value="70"><br>
+		</div>
+		<div style="float:left;  width:40%;">
+			橫走道<br><input id="row_lengh" type="text" value="60"><br>
+		</div>
+	</div>
+		 
+	<div style="clear:both;">
+		<div style="float:left; width:40%;">
+			菇架數量<br><input id="snum" type="text" value="3"><br>
+		</div>
+	</div>
+	
+	<div style="clear:both;">
+		coordinate : <p id="path"></p>
+	</div> 
+</div>	
+
+
+<div style="float:left; width:100%;">
+	<button id="btn1" onclick="myFunction()" >生成</button><br><br>
+	<canvas id="myCanvas" width="500" height="500" style="border:1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.</canvas>
+</div>
+
+
+<!-- Scripts -->
+
+<script  type="text/javascript">
+	var ip = $.cookie("serverip");
+	
+	// Connecting to ROS
+	// -----------------
+	var ros = new ROSLIB.Ros({
+		url: 'ws://'+ip+':9090'
+	});
+	
+	var goal_pub;		// publisher object
+	
+	ros.on('connection', function() {
+		console.log('Connected to websocket server.');
+		goal_pub = new ROSLIB.Topic({
+			ros: ros,
+			name: '/move_base_sequence/corner_pose',
+			messageType: 'geometry_msgs/PoseStamped'
+		});
+		console.log('Set publisher.');
+	});
+
+	// Canvas parameter
+	var frame = document.getElementById("myCanvas");
+	var ctx = frame.getContext("2d");
+	var datasheet = document.getElementById("myCanvas");
+	var ctx2 = datasheet.getContext("2d");
+	var shelf_x;		// width of the mushroom shelf
+	var shelf_y;		// length of the mushroom shelf
+	var col_lengh;		// width of the column corridor
+	var row_lengh;		// width of the row corridor
+	var num;			// number of the mushroom shelf
+	var path;			// The navigation path array
+	var rotMatrix = [
+		 0.0, -1.0,  0.0,
+ 		-1.0,  0.0,  0.0,
+ 		 0.0,  0.0, -1.0];
+	var first_publish = true;
+	var pathplan_room;  
+	var pathplan_path;  
+
+	function myFunction(){
+		path = []
+		ctx.clearRect(0, 0, frame.width, frame.height);		// Clear frame before a new calculate
+		
+		// Get parameter from input text
+		shelf_x = parseInt(document.getElementById("inputsx").value);
+		shelf_y = parseInt(document.getElementById("inputsy").value);
+		col_lengh = parseInt(document.getElementById("col_lengh").value);
+		row_lengh = parseInt(document.getElementById("row_lengh").value);
+		num = parseInt(document.getElementById("snum").value);
+		                     
+		var first_point = [	(frame.width-num * shelf_x-(num-1) * col_lengh)/2, 
+							(frame.height-shelf_y)/2]
+		
+		// Drawing 
+		// --------
+		//ctx.beginPath();
+		pathplan_room = new Path2D();  
+		pathplan_path = new Path2D();
+		// Draw house wall                  
+		pathplan_room.rect(	(frame.width-num*shelf_x-(num-1)*col_lengh)/2-col_lengh, 
+							(frame.height-shelf_y)/2-row_lengh, 
+							(num+1)*col_lengh+num*shelf_x, 
+							2*row_lengh+shelf_y);      	                
+		
+		// Draw mushroom shelf
+		for (let i = 0; i < num; i++){
+			draw_shelf(first_point[0], first_point[1]);
+			first_point[0] += (shelf_x+col_lengh);
+		}
+		
+		// Draw navigation path
+		pathplan_path.moveTo(path[0][0], path[0][1]);	
+
+		publish_pose(path[0][0], path[0][1], Math.atan2(-path[0][1]+path[1][1], path[0][0]-path[1][0]));  
+		var yaw;                              
+		for (let i=1; i<path.length; i++){
+			pathplan_path.lineTo(path[i][0], path[i][1]);
+			if (i<path.length-1){
+				yaw = Math.atan2(-path[i][1]+path[i+1][1], path[i][0]-path[i+1][0]);
+			}
+			publish_pose(path[i][0], path[i][1], yaw);
+		}
+		
+		ctx.strokeStyle = "black";
+		ctx.stroke(pathplan_room); 
+		ctx.strokeStyle = "red";
+		ctx.stroke(pathplan_path); 
+		
+		// Print path points
+		var msg = "[(" + path[0][0] + ", " + path[0][1] + ")";
+		for (let i=1; i<4*num; i++){
+			msg += ", (" + path[i][0] + ", " + path[i][1] + ")";
+		}
+		msg += "]";
+		document.getElementById("path").innerHTML = msg;
+	}
+
+	function draw_shelf(begin_x, begin_y){
+		let offset = 30;
+		pathplan_room.rect(begin_x, begin_y, shelf_x, shelf_y);
+		
+		path.push([begin_x-offset, begin_y+shelf_y ]);
+		path.push([begin_x-offset, begin_y-offset ]);
+		path.push([begin_x+shelf_x+offset, begin_y-offset ]);
+		path.push([begin_x+shelf_x+offset, begin_y+shelf_y ]);
+	}
+	
+	function publish_pose(x, y, yaw) {
+		var poses = RotateMatrix3D(rotMatrix, [x, y, 0])
+		var quaternion = yaw_to_quaternion(yaw + (Math.PI/2));
+		var pose = new ROSLIB.Message({ header: { frame_id: "map" }, 
+										pose: {	position: {	x: poses[0]/100, 
+															y: poses[1]/100 + 5, 
+															z: 0.0 }, 
+												orientation: {	z: quaternion[2], 
+																w: quaternion[3] }}});
+		goal_pub.publish(pose);
+	}
+	
+	function yaw_to_quaternion(yaw){
+    	qx = 0 ;
+    	qy = 0 ;
+    	qz = Math.sin(yaw/2) ;
+    	qw = Math.cos(yaw/2) ;
+		return [qx, qy, qz, qw]
+	}
+	
+	function RotateMatrix3D(matrix, point) {
+
+		var c0r0 = matrix[ 0], c1r0 = matrix[ 1], c2r0 = matrix[ 2];
+		var c0r1 = matrix[ 3], c1r1 = matrix[ 4], c2r1 = matrix[ 5];
+		var c0r2 = matrix[ 6], c1r2 = matrix[ 7], c2r2 = matrix[8];
+
+		var x = point[0];
+		var y = point[1];
+		var z = point[2];
+
+		var resultX = (x * c0r0) + (y * c0r1) + (z * c0r2);
+		var resultY = (x * c1r0) + (y * c1r1) + (z * c1r2);
+		var resultZ = (x * c2r0) + (y * c2r1) + (z * c2r2);
+
+	return [resultX, resultY, resultZ]
+}
+</script>
+
+<!--<script type="text/javascript" src="{{ url_for('static', filename='assets/js/jquery.min.js')}}"></script>-->
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/browser.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/breakpoints.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/util.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/main.js')}}"></script>
+
+{% endblock content %}

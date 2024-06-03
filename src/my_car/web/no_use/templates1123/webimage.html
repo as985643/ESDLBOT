@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block content %}
+<meta charset="utf-8" />
+<script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<script type="text/javascript" type="text/javascript">
+	var ip = $.cookie("serverip");
+		
+		// Connecting to ROS
+		// -----------------
+		var ros = new ROSLIB.Ros({
+			url: 'ws://'+ip+':9090'
+		});
+	ros.on('connection', function() {
+	console.log('Connected to websocket server.');
+	});
+	ros.on('error', function(error) {
+	console.log('Error connecting to websocket server: ', error);
+	});
+	ros.on('close', function() {
+	console.log('Connection to websocket server closed.');
+	});
+	// ----------------------
+	var listener = new ROSLIB.Topic({
+	ros : ros,
+	name : '/usb_cam/image_raw/compressed',
+	messageType : 'sensor_msgs/CompressedImage'
+	});
+	listener.subscribe(function(message) {
+	console.log('Received message on ' + listener.name);
+	document.getElementById('image_sub').src = "data:image/jpeg;base64," + message.data;
+	});
+</script>
+
+<div style="margin:50px 0 0 0; ">
+	<h1>Robot's perspective</h1>
+	<p>Looking through the eyes of a robot.</p>
+	<img width="90%" id="image_sub" style="transform:rotate(180deg);"/>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/browser.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/breakpoints.min.js')}}"></script>
+
+{% endblock %}

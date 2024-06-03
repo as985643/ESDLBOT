@@ -1,0 +1,31 @@
+<launch>
+  <!--
+  Hi! this is describe!
+  -->
+  <!-- Arguments -->
+  <arg name="map_file" default="$(find my_car)/maps/my_map.yaml"/>
+  <arg name="open_rviz" default="true"/>
+  
+  <!-- Map server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <!-- Odom -->
+  <node pkg="my_car" name="pub_odom" type="pub_odom"/>
+  
+  <!-- AMCL -->
+  <include file="$(find my_car)/launch/amcl.launch"/>
+    
+  <!-- robot -->
+  <include file="$(find my_car)/launch/robot.launch">
+    <arg name="open_rviz" default="false"/>
+  </include>
+
+  <!-- Location the map frame -->
+  <!--<node name="map_to_odom" pkg="tf" type="static_transform_publisher" args="0.0 0.0 0.0 0.0 0.0 0.0 map odom 10" />-->
+  
+  <!-- Open Rviz -->
+  <group if="$(arg open_rviz)"> 
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find my_car)/rviz/withmap.rviz"/>
+  </group>
+</launch>

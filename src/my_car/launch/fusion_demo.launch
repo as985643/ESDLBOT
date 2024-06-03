@@ -1,0 +1,35 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="robot_model" default="esdlbot_demo.xacro" />
+
+    <param name="robot_description" command="$(find xacro)/xacro '$(find my_car)/urdf/$(arg robot_model)'" />
+  
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    
+    <!--<node name="imu_joint" pkg="tf2_ros" type="static_transform_publisher" args="0.0 0.0 0.5 0.0 0.0 0.0 base_link odom" />-->
+    <!--<node name="base_joint" pkg="tf2_ros" type="static_transform_publisher" args="0.0 0.0 0.91 0.0 0.0 0.0 base_link imu_link" />-->
+    
+    <node name="imu_filter" pkg="imu_complementary_filter" type="complementary_filter_node">
+      <param name="_gain_acc" value="0.2"/>
+    </node>
+    
+    <!-- Odom-IMU Extended Kalman Filter-->
+    <arg name="ekf_raw_odom" default="odom_raw"/>
+    <arg name="ekf_raw_imu" default="imu/data"/>
+    <arg name="ekf_odom_frame" default="odom"/>
+    <arg name="ekf_base_link_frame" default="base_footprint"/>
+    <arg name="ekf_world_frame" default="odom"/>
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"> 
+        <remap from="odometry/filtered" to="odom" />
+        <rosparam command="load" file="$(find my_car)/param/ekf/robot_localization.yaml" />
+        <param name="odom0" value="$(arg ekf_raw_odom)" />
+        <param name="imu0" value="$(arg ekf_raw_imu)" />
+        <param name="odom_frame" value="$(arg ekf_odom_frame)" />
+        <param name="base_link_frame" value="$(arg ekf_base_link_frame)" />
+        <param name="world_frame" value="$(arg ekf_world_frame)" />
+    </node>
+
+</launch>

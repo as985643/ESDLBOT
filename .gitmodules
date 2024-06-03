@@ -1,0 +1,6 @@
+[submodule "src/my_car/test/esp32_imu"]
+	path = src/my_car/test/esp32_imu
+	url = https://github.com/akshaykulkarni07/esp32_imu.git
+[submodule "src/ultralytics_ros"]
+	path = src/ultralytics_ros
+	url = https://github.com/Alpaca-zip/ultralytics_ros.git

@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div style="float:left; width:50%;" id="param">
+	<div style="clear:both; margin:50px 0 0 0 ">
+		<div style="float:left; width:40%;">
+			升降高度<br><input id="elevating_pos" type="text" value="50">
+		</div>
+	</div>
+</div>
+
+			
+<div style="float:left; width:100%;">
+	<button id="btnup" onclick="upFunction()" >上升</button>
+	<button id="btndown" onclick="downFunction()" >下降</button><br><br>
+</div>
+
+<!-- Scripts -->
+
+<script  type="text/javascript">	
+	var ip = $.cookie("serverip");
+	
+	// Connecting to ROS
+	// -----------------
+	var ros = new ROSLIB.Ros({
+		url: 'ws://'+ip+':9090'
+	});
+	
+	var goal_pub;		// publisher object
+	
+	ros.on('connection', function() {
+		console.log('Connected to websocket server.');
+		goal_pub = new ROSLIB.Topic({
+			ros: ros,
+			name: '/elevating_pos',
+			messageType: 'std_msgs/Float64'
+		});
+		
+		console.log('Set publisher.');
+	});
+
+	
+	function upFunction(){
+	  // Get parameter from input text
+	  var	pos = -parseInt(document.getElementById("elevating_pos").value);
+		
+		var pos_msg = new ROSLIB.Message({data: pos});
+		console.log(pos);
+		goal_pub.publish(pos_msg);
+		
+	}
+	
+	function downFunction(){
+	  // Get parameter from input text
+	  var	pos = parseInt(document.getElementById("elevating_pos").value);
+		
+		var pos_msg = new ROSLIB.Message({data: pos});
+		console.log(pos);
+		goal_pub.publish(pos_msg);
+		
+	}
+
+	
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/browser.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/breakpoints.min.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/util.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='assets/js/main.js')}}"></script>
+
+{% endblock content %}

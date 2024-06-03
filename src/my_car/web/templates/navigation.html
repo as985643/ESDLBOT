@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block before_inner %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/navigation.js')}}"></script>
+
+<nav class="navbar navbar-expand-lg bg-light navbar-light static-top">
+    <div class="container-fluid">
+        <!-- Brand -->
+        <a style="margin:0 0 0 50px;" class="navbar-brand " href="/"><img src="{{url_for('static', filename='img/mainLogo.svg')}}" width="60" height="50" alt=""></a>
+        <!-- Links -->
+        <ul class="navbar-nav ml-auto">
+        	<li class="nav-item">
+                <a class="nav-link" href="">
+                    <div class="startmap" style="text-align:center" ><i class="fa fa-street-view fa-2x"></i><span class="caption">Mapping</span></div>
+                </a>
+            </li>
+        	<li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div id="path" style="text-align:center" ><i class="fa fa-toggle-off fa-2x"></i><span class="caption">Path View</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div id="maplive" style="text-align:center" ><i class="fa fa-map fa-2x"></i><span class="caption">Live</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div id="mapgraphical" style="text-align:center" ><i class="fa fa-picture-o fa-2x"></i><span class="caption">Graphical</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div class="zoom-ctrl" id="zoomplus" style="text-align:center" ><i class="fa fa-plus-circle fa-2x"></i><span class="caption">Zoom in</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div class="zoom-ctrl" id="zoomminus" style="text-align:center" ><i class="fa fa-minus-circle fa-2x"></i><span class="caption">Zoom out</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div class="localizee" id="home" style="text-align:center" ><i class="fa fa-map-marker fa-2x"></i><span class="caption">Initialize</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div class="stop-tool" id="stop" style="text-align:center" ><i class="fa fa-hand-paper-o fa-2x"></i><span class="caption">Stop</span></div>
+                </a>
+            </li>
+            <li class="nav-item" >
+                <a class="nav-link" href="#">
+                    <div class="ctrl-wrap" id="navigate" style="text-align:center" ><i class="fa fa-paper-plane fa-2x"></i><span class="caption">Navigate</span></div>
+                </a>
+            </li>
+            <!-- Dropdown -->
+            <li class="dropdown nav-item">
+                <button class="button big" onclick="myFunction()" >Load map <i class="fa fa-caret-down"></i></button>
+                <div id="drop-text" class="dropdown-content">
+                    {% for map in maps %}
+                    <a class="droptext" >{{map[1]}}<span class="close-navigation">&times</span></a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="nav-item" id="restart">
+                <a class="nav-link" href="#">
+                    <i class="fa fa-repeat center"></i>
+                </a>
+            </li>
+            <li class="nav-item" id="shutdown">
+                <a class="nav-link" href="#">
+                    <i class="fa fa-power-off center"></i>      <!-- power icon -->
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fa fa-battery-full center"></i>
+                </a>
+   
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endblock before_inner%}
+
+{% block content %}
+
+<div style="text-align:center;" id="nav"></div>
+
+
+
+
+
+
+{% endblock content %}

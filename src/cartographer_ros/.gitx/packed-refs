@@ -1,0 +1,9 @@
+# pack-refs with: peeled fully-peeled sorted 
+c06879b63567a78ef92b7d1fa79453839e36ffec refs/remotes/origin/master
+3cb7efd62c38125081b86844c5b2fee3147d0667 refs/remotes/origin/release-1.0
+9020ba0247c14b3203d54c7bb4145d9ffe5ef5cb refs/remotes/origin/ros2-dashing
+df2d7913589347c141be7eec2df52c2b54b791b7 refs/remotes/origin/ros2-dashing-1.0.0
+eb804c1182aa94819792733ecf10bfadefb36348 refs/tags/0.1.0
+d0d7ebf1737cc069c4fd51756d17202df6af82ad refs/tags/0.2.0
+42d82cbdfd6a515aad8fd1830e0c26c9c1f53261 refs/tags/0.3.0
+3cb7efd62c38125081b86844c5b2fee3147d0667 refs/tags/1.0.0

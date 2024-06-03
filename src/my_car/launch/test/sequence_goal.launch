@@ -1,0 +1,6 @@
+<launch>
+  <node name="move_base_sequence" pkg="move_base_sequence" type="server.py" output="screen">
+    <param name="/is_repeating" value="False"/>
+    <param name="/abortion_behaviour" value="stop"/>
+  </node>
+</launch>

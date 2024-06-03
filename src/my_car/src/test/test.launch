@@ -1,0 +1,10 @@
+<launch>
+
+  <node name="pkg1" type="test.py" pkg="my_car" output="screen">
+    <param name="data1" value="50"/>
+  </node>
+  <node name="pkg2" type="test.py" pkg="my_car" output="screen">
+    <param name="data1" value="87"/>
+  </node>
+
+</launch>

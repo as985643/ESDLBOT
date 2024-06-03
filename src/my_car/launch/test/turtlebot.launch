@@ -1,0 +1,24 @@
+<launch>
+  <!--
+  Main launch
+  Open the rviz and show model, scan, the tf tags of the apriltags 
+  -->
+  
+  <!-- Arguments -->
+  <arg name="open_rviz" default="false"/>
+  
+  <!-- Find the apriltag code -->
+  <include file="$(find my_car)/launch/code_detect.launch">
+      <arg name="open_cam" default="false"/>
+  </include>
+   
+  <!-- Rotation the carmera tf -->
+  <param name="cam_x" type="double" value="0.05"/>
+  <param name="cam_z" type="double" value="0.122"/>
+  <node name="usb_cam2laser_frame" pkg="my_car" type="add_tf.py"/>
+  
+  <!-- Open Rviz -->
+  <group if="$(arg open_rviz)"> 
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_car)/rviz/robot.rviz" />
+  </group>
+</launch>

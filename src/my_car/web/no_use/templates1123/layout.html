@@ -1,0 +1,120 @@
+<!--template inheritance..this page is used to update every part of the code that are repeating-->
+<!DOCTYPE html>
+<html lang="en" class="index-con">
+
+	<head>
+		<title>Editorial by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+		<!-- Load an icon library -->
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/font-awesome-4.7.0/css/font-awesome.min.css')}}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
+		<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/assets/css/main.css')}}">
+		<script type="text/javascript" src="{{ url_for('static', filename='js/index.js')}}"></script>
+		{% if title %}
+		<title>{{title}}</title>
+		{% else %}
+		<title>Navigation</title>
+		{% endif %}
+		<script type="text/javascript" src="{{ url_for('static', filename='js/easeljs.min.js')}}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/eventemitter2.min.js')}}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/roslib.min.js')}}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/ros2d.js')}}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/nav2d.js')}}"></script>
+		
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+	</head>
+
+	<!--<body style="height: 100%;margin: 0;font-family: Arial, Helvetica, sans-serif;">-->
+	<body class="is-preload">
+    <!-- Wrapper -->
+		<div id="wrapper">
+		
+			<!-- Main -->
+			<div id="main">
+				<div class="inner">
+    			{% block content %}{% endblock %}
+    		</div> <!-- inner -->
+			</div> <!-- main -->
+    	
+    	<!-- Sidebar -->
+			<div id="sidebar">
+				<div class="inner">
+					<!-- Menu -->
+					<nav id="menu">
+						<header class="major"><h2>Menu</h2></header>
+						<ul>
+							<li><a href="/">Homepage</a></li>
+							<!--<li><a href="elements.html">Elements</a></li>-->
+							<li><a data-toggle="modal" data-target="#exampleModal">Navagation</a></li>
+							<li><a onclick="mapbtn()" >Mapping</a></li>
+							<li><a href="pathplan">Path Plan</a></li>
+							<li><a href="webimage">Camera show</a></li>
+							<li><a href="index.html">AI Detect</a></li>
+							<li><a href="robotControl">RobotControl</a></li>
+							<li><a href="sqlview">Data Visualization</a></li>
+							<li>
+								<span class="opener">Outside</span>
+								<ul>
+									<li><a href="#">InsideA</a></li>
+									<li><a href="#">InsideB</a></li>
+									<li><a href="#">InsideC</a></li>
+									<li><a href="#">InsideD</a></li>
+								</ul>
+							</li>
+						</ul>
+					</nav>
+
+					<!-- Section -->
+					<section>
+						<header class="major"><h2>Get in touch</h2></header>
+						<p>Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+						<ul class="contact">
+							<li class="icon solid fa-envelope"><a href="#">information@untitled.tld</a></li>
+							<li class="icon solid fa-phone">(000) 000-0000</li>
+							<li class="icon solid fa-home">1234 Somewhere Road #8254<br />
+							Nashville, TN 00000-0000</li>
+						</ul>
+					</section>
+
+					<!-- Footer -->
+					<footer id="footer">
+						<p class="copyright">&copy; Untitled. All rights reserved. Demo Images: <a href="https://unsplash.com">Unsplash</a>. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
+					</footer>
+
+				</div> <!-- inner -->
+			</div> <!-- sidebar -->
+			
+		</div> <!-- wrapper -->
+		<!-- Scripts -->
+ 		<script type="text/javascript" src="{{ url_for('static', filename='assets/js/main.js')}}"></script>
+		<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+				
+				  <div class="modal-header">
+				    <h5 class="modal-title" id="exampleModalLabel">Choose map</h5>
+				    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				      <span aria-hidden="true">&times;</span>
+				    </button>
+					</div><!-- modal-header -->
+					
+				  <div class="modal-body">
+				    <div class="list-group" id="index-list">
+						  {% for maps in map %}
+						  <a class="list-group-item list-group-item-action" style="cursor:pointer;">{{maps[1]}}</a>
+						  {% endfor %}
+						  <a class="list-group-item list-group-item-action" style="cursor:pointer;">library</a>
+				    </div><!-- index-list -->
+				  </div><!-- modal-body -->
+				  
+				</div><!-- modal-content -->
+			</div><!-- modal-dialog modal-dialog-centered -->
+		</div><!-- exampleModal -->
+		<div class="modal-load"></div>
+</body>
+
+</html>

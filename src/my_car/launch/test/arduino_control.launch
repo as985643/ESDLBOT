@@ -1,0 +1,7 @@
+<launch>
+  <param name="wheel_diameter" value="0.067"/>
+  <param name="car_width" value="0.243"/>
+  <param name="Pulse_Per_Rev" value="800"/>
+  
+  <node name="rosserial" pkg="rosserial_arduino" type="serial_node.py" output="screen" args="/dev/ttyACM0" />
+</launch>

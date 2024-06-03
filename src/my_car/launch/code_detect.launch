@@ -1,0 +1,28 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="open_cam" default="false"/>
+  <arg name="open_rviz" default="false"/>
+  
+  <!-- Open Webcam -->
+  <group if="$(arg open_cam)"> 
+    <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+      <param name="video_device" value="/dev/video0" />
+      <param name="image_width" value="160" />
+      <param name="image_height" value="120" />
+      <param name="pixel_format" value="yuyv" />
+      <param name="camera_frame_id" value="usb_cam" />
+      <param name="io_method" value="mmap"/>
+    </node>
+  </group>
+  
+  <!-- Republish Video -->
+  <node pkg="image_transport" type="republish" name="republish" args="compressed in:=usb_cam/image_raw raw out:=usb_cam/republish_frame"/>
+  
+  <!-- Detect apriltag -->
+  <include file="$(find apriltag_ros)/launch/continuous_detection.launch" />
+  
+  <!-- Open Rviz -->
+  <group if="$(arg open_rviz)"> 
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_car)/rviz/apriltag_show.rviz" />
+  </group> 
+</launch>

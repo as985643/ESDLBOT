@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="esdlbot_demo" >
+  <joint name="laser_base_joint" type="fixed">
+    <parent link="base_link" />
+    <child link = "base_laser" />
+    <origin xyz="-0.215 0.0 0.06" rpy="0.0 0.0 0.0" />
+  </joint>
+  <joint name="usb_cam_joint" type="fixed">
+    <parent link="base_laser" />
+    <child link = "usb_cam" />
+    <origin xyz="0.0 0.0 0.06" rpy="-1.57 0.0 -1.57" />
+  </joint>
+  
+  <link name="usb_cam" />
+  
+  <!-- robot -->
+  <xacro:include filename="$(find my_car)/urdf/esdlbot_demo_base.urdf" />
+
+  <!-- lidar -->
+  <xacro:include filename="$(find ydlidar_ros)/urdf/ydlidar.urdf" />
+
+
+</robot>
