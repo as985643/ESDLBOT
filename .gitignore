@@ -4,3 +4,4 @@ devel_isolated
 update.bash
 .catkin_workspace
 .vscode
+.gitmodules
