@@ -66,6 +66,6 @@ else()
   endif()
 endif()
 
-list(APPEND CMAKE_PREFIX_PATH "/home/esdl/jin2_ws/abseil-cpp/absl")
+list(APPEND CMAKE_PREFIX_PATH "/home/user/feng_ws/abseil-cpp/absl")
 
 catkin_workspace()

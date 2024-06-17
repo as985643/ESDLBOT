@@ -300,7 +300,7 @@ if __name__ == '__main__':
 	subprocess.Popen(["roslaunch", "rosbridge_server", "rosbridge_websocket.launch"])
 	subprocess.Popen(["rosrun", "robot_pose_publisher", "robot_pose_publisher"])
 	
-	app.run(host='0.0.0.0', debug=False)    
+	app.run(host='0.0.0.0', port=8000, debug=False)    
 	
 	
 	

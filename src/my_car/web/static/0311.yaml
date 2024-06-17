@@ -1,4 +1,5 @@
-image: /home/user/jin_ws/src/my_car/web/static/0311.pgm
+# image: /home/user/jin_ws/src/my_car/web/static/0311.pgm
+image: /home/esdl/feng_ws/src/my_car/web/static/0311.pgm
 resolution: 0.050000
 origin: [-4.592982, -8.773243, 0.000000]
 negate: 0
