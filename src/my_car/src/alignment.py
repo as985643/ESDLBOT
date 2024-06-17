@@ -161,9 +161,9 @@ class Alignment():
     def Move_nearby(self):
         deep = self.listen_deep()
         if deep < 0.2:
-        	self.GoStraight(deep*0.5)
+            self.GoStraight(deep*0.5)
         else:
-        	self.GoStraight(0.1)
+            self.GoStraight(0.1)
 
         if deep < 0.0015:
             self.allStop()
