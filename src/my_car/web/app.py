@@ -1,14 +1,20 @@
-from flask import Flask, render_template, url_for,g,jsonify,request,make_response
+from flask import Flask, render_template, url_for,g,jsonify,request,make_response,send_from_directory,redirect
 import subprocess
 import signal
 import os
 import time
 from mySQL import mySQL
 
+from werkzeug.utils import secure_filename
+import cv2
+from ultralytics import YOLO
+import glob
+from PIL import Image
+import shutil
+import json
 
 app = Flask(__name__)
-
-
+# app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024
 
 car_sensor = mySQL("car_sensor")
 maps = mySQL("maps")
@@ -16,7 +22,7 @@ maps = mySQL("maps")
 class roslaunch_process():
     @classmethod
     def start_navigation(self,mapname):
-        self.process_navigation = subprocess.Popen(["roslaunch","--wait", "my_car", "esdlbot_V1_navigation.launch", "map_file:="+os.getcwd()+"/static/"+mapname+".yaml"])
+        self.process_navigation = subprocess.Popen(["roslaunch","--wait", "my_car", "esdlbot_V1_navigation.launch", "map_file:="+os.getcwd()+"/static/maps/"+mapname+".yaml"])
 
     @classmethod
     def stop_navigation(self):
@@ -83,15 +89,15 @@ def index():
 
 @app.route('/sqlview')
 def sqlview():
-	'''
-	with get_db():
-	    try:
-	        c = get_db().cursor()
-	        c.execute("SELECT * FROM maps")
-        	data = c.fetchall()
-	        c.close()
-	    except Error as e:
-	        print(e)'''
+	
+	# with get_db():
+	# 	try:
+	# 		c = get_db().cursor()
+	# 		c.execute("SELECT * FROM maps")
+	# 		data = c.fetchall()
+	# 		c.close()
+	# 	except Error as e:
+	# 		print(e)
 	'''
 	list_users = [  [0, 'A1', 2, 3, 8.2,'2022-11-3 11:59:01'],
 	                [1, 'A2', 6, 7, 7.3, '2022-11-3 11:59:01'],
@@ -111,6 +117,27 @@ def sqlview():
 	maps_list = maps.read_sql()[1]
 	return render_template('SQLView.html', title='SQL View', list_users = list_users, maps=maps_list)
 
+@app.route('/edit/<int:no>', methods=['GET', 'POST'])
+def edit(no):
+    if request.method == 'POST':
+        # 在這裡處理表單提交的資料
+        # 例如，您可以從表單中獲取新的資料，然後更新資料庫中的記錄
+        new_data = request.form['new_data']
+        car_sensor.update_sql(no, new_data)
+        return redirect(url_for('sqlview'))
+    else:
+        # 在這裡準備表單
+        # 例如，您可以從資料庫中獲取當前的資料，然後將其填充到表單中
+        current_data = car_sensor.read_sql(no)
+        return render_template('edit.html', data=current_data)
+
+@app.route('/delete/<int:no>', methods=['POST'])
+def delete(no):
+    # 在這裡處理刪除記錄的請求
+    # 例如，您可以從資料庫中刪除指定的記錄
+    car_sensor.del_sql(no)
+    return redirect(url_for('sqlview'))
+
 
 @app.route('/add_student', methods=['POST'])
 def add_student():
@@ -129,6 +156,155 @@ def add_student():
 def robotControl():
 	maps_list = maps.read_sql()[1]
 	return render_template('robotControl.html', title='Robot Control', maps=maps_list)
+
+# @app.route('/AIdetect')
+# def AIdetect():
+# 	maps_list = maps.read_sql()[1]
+# 	return render_template('AIdetect.html', title='AIdetect', maps=maps_list)
+
+@app.route('/AIdetect')
+def upload_file():
+   return render_template('uploads.html',title='AIdetect')
+
+# @app.route('/AIdetect', methods = ['POST'])
+# def uploads():
+# 	if request.method == 'POST':
+# 		f = request.files['file']
+# 		filename = secure_filename(f.filename)
+# 		filepath = os.path.join('./static/uploads', filename)
+# 		f.save(filepath)
+
+# 		print(filepath)
+# 		# 假設你已經設定好 YOLOv8
+# 		model = YOLO('static/weights/Analog_meter_v15.pt')
+
+# 		result_image = model.predict(filepath, save=True)
+
+# 		# 獲取所有的預測資料夾
+# 		folders = glob.glob('runs/detect/predict*')
+
+# 		# 使用資料夾的修改時間來找出最新的資料夾
+# 		latest_folder = max(folders, key=os.path.getmtime)
+			
+# 		result_image = os.path.join(latest_folder, filename)
+
+# 		# 將結果影像移動到static資料夾中
+# 		dst_path = os.path.join('./static/results/', filename)
+
+# 		# 檢查目標位置是否已經存在同名檔案
+# 		if os.path.exists(dst_path):
+# 			# 如果存在，則先刪除它
+# 			os.remove(dst_path)
+		
+# 		shutil.move(result_image, './static/results/')
+
+# 		# 更新結果影像的路徑
+# 		result_image = os.path.join('results', filename)
+
+# 		# return '物件偵測完成，結果影像已儲存到: {}'.format(result_image)
+		
+# 		# 返回一個HTML模板，並將結果影像的路徑傳遞給該模板
+# 		return render_template('results.html', result_image=result_image)
+# 	else:
+# 		return '沒有收到檔案', 400
+
+@app.route('/AIdetect', methods = ['GET', 'POST'])
+def uploads():
+	if request.method == 'POST':
+		f = request.files['file']
+		filename = secure_filename(f.filename)
+		filepath = os.path.join('./static/uploads', filename)
+		f.save(filepath)
+
+		# 在這裡將 '/static/' 從文件路徑中移除，以適應 url_for 函數
+		url_for_filepath = filepath.replace('./static/', '')
+
+		# 獲取使用者選擇的模型
+		model_choice = request.form.get('model_choice')
+
+		# 根據使用者的選擇來決定要使用哪個模型
+		if model_choice == 'Analog_meter_v15':
+			model_path = 'static/weights/Analog_meter_v15.pt'
+		elif model_choice == 'count_mushrooms':
+			model_path = 'static/weights/count_mushrooms.pt'
+		elif model_choice == 'digital_meter':
+			model_path = 'static/weights/digital_meter.pt'
+		else:
+			return '未知的模型選擇', 400
+
+		model = YOLO(model_path)
+
+		# result_image = model.predict(filepath, save=True)
+		# Run inference on the uploaded image
+		result_image = model([filepath], save=True)
+
+		# 將結果轉換為 JSON 格式
+		predictions = result_image[0].tojson()
+		predictions = json.loads(predictions)
+		# print(predictions)
+
+		# 根據 x 座標排序預測結果
+		predictions.sort(key=lambda x: (x['box']['x1'], x['box']['y1']))
+
+		# 初始化計數器
+		count = 0
+		detected_classes = []
+
+		# 遍歷每一個邊界框
+		for prediction in predictions:
+			# 獲取類別名稱
+			class_name = prediction['name']
+			detected_classes.append(class_name)
+			# 如果這個邊界框的類別是 'King oyster mushroom'
+			if class_name == 'King_oyster_mushroom':
+				# 增加計數器
+				count += 1
+
+		# 如果模型是 count_mushrooms，則計算杏鮑菇的數量
+		# if model_choice == 'count_mushrooms':
+			# 假設 result 是一個包含所有被辨識出的物件的列表，每個物件都有一個 'class' 鍵和一個 'bbox' 鍵
+			# print(result_image[0].boxes)
+		# 	mushroom_count = sum(1 for box in result_image[0].boxes if box['class'] == 'King_oyster_mushroom')
+		# else:
+		# 	mushroom_count = None
+
+		# 將張量轉換為列表
+		# predictions = predictions.tolist()
+
+		# 計算King oyster mushroom類別的物件數量
+		# mushroom_count = sum(1 for p in predictions if p['class'] == 'King_oyster_mushroom')
+
+		# 獲取所有的預測資料夾
+		folders = glob.glob('runs/detect/predict*')
+
+		# 使用資料夾的修改時間來找出最新的資料夾
+		latest_folder = max(folders, key=os.path.getmtime)
+			
+		result_image = os.path.join(latest_folder, filename)
+
+		# 將結果影像移動到static資料夾中
+		dst_path = os.path.join('./static/results/', filename)
+
+		# 檢查目標位置是否已經存在同名檔案
+		if os.path.exists(dst_path):
+			# 如果存在，則先刪除它
+			os.remove(dst_path)
+		
+		shutil.move(result_image, './static/results/')
+
+		# 更新結果影像的路徑
+		result_image = os.path.join('results', filename)
+
+		# return '物件偵測完成，結果影像已儲存到: {}'.format(result_image)
+		
+		# 返回一個HTML模板，並將結果影像的路徑傳遞給該模板
+		return render_template('results.html', result_image=result_image, mushroom_count=count,
+								original_image=url_for_filepath, detected_classes=detected_classes)
+
+		# ... 其他程式碼不變 ...
+	else:
+		# 如果是 GET 請求，則顯示上傳表單
+		return render_template('uploads.html',title='AIdetect')
 
 @app.route('/pathplan')
 def pathplan():
@@ -180,16 +356,16 @@ def themainroute(variable):
 
 def navigation():
 
-	'''
-	with get_db():
-	    try:
-	        c = get_db().cursor()
-	        c.execute("SELECT * FROM maps")
-        	data = c.fetchall()
-	        c.close()
-	    except Error as e:
-	        print(e)
-	'''
+	
+	# with get_db():
+	# 	try:
+	# 		c = get_db().cursor()
+	# 		c.execute("SELECT * FROM maps")
+	# 		data = c.fetchall()
+	# 		c.close()
+	# 	except Error as e:
+	# 		print(e)
+	
 	maps_list = maps.read_sql()[1]
 	return render_template('navigation.html', title='Navigation',maps = maps_list)
 
@@ -199,7 +375,7 @@ def navigation():
 def deletemap():
 	mapname = request.get_data().decode('utf-8')
 	print(mapname)
-	os.system("rm -rf"+" "+os.getcwd()+"/static/"+mapname+".yaml "+os.getcwd()+"/static/"+mapname+".png "+os.getcwd()+"/static/"+mapname+".pgm")
+	os.system("rm -rf"+" "+os.getcwd()+"/static/maps/"+mapname+".yaml "+os.getcwd()+"/static/maps/"+mapname+".png "+os.getcwd()+"/static/maps/"+mapname+".pgm")
 
 	maps.del_map(mapname)
 	return ("successfully deleted map")	
@@ -237,17 +413,18 @@ def stop():
 
 @app.route('/mapping')
 def mapping():
-	'''
-	with get_db():
-	    try:
-	        c = get_db().cursor()
-	        c.execute("SELECT * FROM maps")
-        	data = c.fetchall()
-	        c.close()
-	    except Error as e:
-	        print(e)
-	'''
+	
+	# with get_db():
+	# 	try:
+	# 		c = get_db().cursor()
+	# 		c.execute("SELECT * FROM maps")
+	# 		data = c.fetchall()
+	# 		c.close()
+	# 	except Error as e:
+	# 		print(e)
+	
 	maps_list = maps.read_sql()[1]
+	# print(maps_list)
 	return render_template('mapping.html', title='Mapping', maps = maps_list) 
 	
 
@@ -263,19 +440,19 @@ def killnode():
 def savemap():
 	mapname = request.get_data().decode('utf-8')
 
-	os.system("rosrun map_server map_saver -f"+" "+os.path.join(os.getcwd(),"static",mapname))
-	os.system("convert"+" "+os.getcwd()+"/static/"+mapname+".pgm"+" "+os.getcwd()+"/static/"+mapname+".png")
+	os.system("rosrun map_server map_saver -f"+" "+os.path.join(os.getcwd(),"static/maps/",mapname))
+	os.system("convert"+" "+os.getcwd()+"/static/maps/"+mapname+".pgm"+" "+os.getcwd()+"/static/maps/"+mapname+".png")
 	maps.add_sql([mapname])
-	'''
-	with get_db():
-	    try:
-	        c = get_db().cursor()
-	        c.execute("insert into maps (name) values (?)", (mapname,))
-	        # get_db().commit()
-	        c.close()
-	    except Error as e:
-	        print(e)
-    '''
+	
+	# with get_db():
+	# 	try:
+	# 		c = get_db().cursor()
+	# 		c.execute("insert into maps (name) values (?)", (mapname,))
+	# 		# get_db().commit()
+	# 		c.close()
+	# 	except Error as e:
+	# 		print(e)
+    
 	return("success")
 
 

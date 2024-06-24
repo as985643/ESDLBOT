@@ -1,11 +1,14 @@
 import os
 import psycopg2
 
-#DATABASE_URL = {"database":"esdldb", "user":"esdl", "password":"bj/6m06",
+# DATABASE_URL = {"database":"esdldb", "user":"esdl", "password":"bj/6m06",
 #                "host":"localhost", "port":"5432"}		# sql 資訊
 
-DATABASE_URL = {"database":"mydb", "user":"postgres", "password":"bj/6m06",
-                "host":"192.168.1.179", "port":"5432"}		# sql 資訊
+# DATABASE_URL = {"database":"mydb", "user":"postgres", "password":"bj/6m06",
+#                 "host":"192.168.1.179", "port":"5432"}		# sql 資訊
+
+DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
+                "host":"192.168.1.180", "port":"5432"}		# sql 資訊
 
 
 class mySQL:
@@ -273,9 +276,76 @@ if __name__ == '__main__':
 		dicc = {"record_no":"integer", "sche_time":"text", "sche_work":"text"}
 		aaa = {"record_no":"integer", "ID":"text", "total":"integer", "fifty":"integer", "ten":"integer", "five":"integer", "one":"integer"}
 		'''
+		###################################################################################################
+		# 手動更新area資料
+		# try:
+		# 	conn = psycopg2.connect(**DATABASE_URL, sslmode='require') # 連接 Postgresql
+		# 	cursor = conn.cursor()
+		# 	cursor.execute("UPDATE car_sensor SET area = 'A1' WHERE area = '0';") # 執行 SQL
+		# 	conn.commit()
+		# 	print("Record updated successfully")
+		# except Exception as e:
+		# 	print("Error updating record:", e)
+		# finally:
+		# 	cursor.close()
+		# 	conn.close()
+		###################################################################################################
+
+		###################################################################################################
+		# 手動新增資料
+		# data = [
+		# 	[1, 'A2', 6, 7, 7.3, '2022-11-3 11:59:01'],
+		# 	[2, 'A1', 10, 11, 6.5, '2022-11-3 11:59:01'],
+		# 	[3, 'A3', 6, 7, 4.8, '2022-11-3 11:59:01'],
+		# 	[4, 'A2', 6, 7, 2.5, '2022-11-3 11:59:01'],
+		# 	[5, 'A1', 10, 11, 3.3, '2022-11-3 11:59:01'],
+		# 	[6, 'A3', 6, 7, 5.5, '2022-11-3 11:59:01'],
+		# 	[7, 'A2', 10, 11, 8.9, '2022-11-3 11:59:01'],
+		# 	[8, 'A1', 6, 7, 4.1, '2022-11-3 11:59:01'],
+		# 	[9, 'A3', 10, 11, 5.6, '2022-11-3 11:59:01'],
+		# 	[10, 'A3', 10, 11, 1.2, '2022-11-3 11:59:01'],
+		# 	[11, 'A1', 6, 7, 8.8, '2022-11-3 11:59:01'],
+		# 	[12, 'A2', 10, 11, 6.5, '2022-11-3 11:59:01'],
+		# 	[13, 'A4', 14, 15, 7.2, '2022-11-3 11:59:01']
+		# ]
+
+		# try:
+		# 	conn = psycopg2.connect(**DATABASE_URL, sslmode='require') # 連接 Postgresql
+		# 	cursor = conn.cursor()
+
+		# 	for row in data:
+		# 		cursor.execute(
+		# 			"INSERT INTO car_sensor VALUES (%s, %s, %s, %s, %s, %s);",
+		# 			row
+		# 		)
+
+		# 	conn.commit()
+		# 	print("Records inserted successfully")
+		# except Exception as e:
+		# 	print("Error inserting records:", e)
+		# finally:
+		# 	cursor.close()
+		# 	conn.close()
+		###################################################################################################
+
+		###################################################################################################
+		# 刪除 car_sensor 表格中的所有資料
+		# try:
+		# 	conn = psycopg2.connect(**DATABASE_URL, sslmode='require') # 連接 Postgresql
+		# 	cursor = conn.cursor()
+
+		# 	cursor.execute("DELETE FROM car_sensor;") # 執行 SQL
+		# 	conn.commit()
+		# 	print("All data deleted successfully from the table")
+		# except Exception as e:
+		# 	print("Error deleting data:", e)
+		# finally:
+		# 	cursor.close()
+		# 	conn.close()
+		###################################################################################################
 		
 		sql = mySQL("car_sensor")
-		#sql = mySQL("maps")
+		# sql = mySQL("maps")
 		
 		## Delete specify row ##
 		#for i in range(100):

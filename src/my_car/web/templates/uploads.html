@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AI detect</title>
+        <style>
+            .file-upload {
+                margin-top: 100px;  /* 增加上邊距 */
+            }
+            h1 {
+                margin-top: 50px;
+                font-size: 48px;  /* 調整為你想要的大小 */
+                border-bottom: 2px solid red;  /* 在h1元素下方添加一條紅色的底線 */
+            }
+        </style>
+    </head>
+<body>
+    <h1>AI Detect</h1>
+    
+   <!-- <form action = "http://192.168.1.180:8000/AIdetect" method = "POST" enctype = "multipart/form-data">
+      <input type = "file" name = "file" class="file-upload"/>
+      <input type = "submit"/>
+   </form>
+</body> -->
+
+    <form method="POST" enctype="multipart/form-data">
+        <select name="model_choice">
+            <option value="Analog_meter_v15">Analog Meter Detection</option>
+            <option value="count_mushrooms">Mushroom Counting</option>
+            <option value="digital_meter">digital meter</option>
+        </select>
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+</html>
+{% endblock content %}

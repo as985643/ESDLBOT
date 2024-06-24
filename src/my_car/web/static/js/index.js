@@ -11,7 +11,7 @@ function mapbtn(){
         function connect() {
 
           var ros = new ROSLIB.Ros({
-            url: 'ws://192.168.1.143:9090'
+            url: 'ws://192.168.1.180:9090'
           });
 
 
@@ -123,7 +123,7 @@ $(document).ready(function() {
                                 // Connecting to ROS
                                 // -----------------
                                 var ros = new ROSLIB.Ros({
-                                    url: 'ws://192.168.1.143:9090'
+                                    url: 'ws://192.168.1.180:9090'
                                 });
 
 

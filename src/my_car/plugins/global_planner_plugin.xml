@@ -1,0 +1,6 @@
+<library path="lib/libmy_plugin_library">
+  <class name="my_car/GlobalPlanner" type="nav_core::BaseLocalPlanner" base_class_type="nodelet::Nodelet">
+    <description>This is my plugin.</description>
+  </class>
+</library>
+
