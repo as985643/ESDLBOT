@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    label {
+        font-size: 35px; /* Adjust as needed */
+        margin-top: 30px; /* Adjust as needed */
+    }
+    </style>
+<form method="POST">
+    <label for="area">Modefy Area:</label><br>
+    <input type="text" id="area" name="area" value="{{ area }}"><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

@@ -31,21 +31,13 @@
                 font-size: 48px;  /* 調整為你想要的大小 */
                 border-bottom: 2px solid red;  /* 在h1元素下方添加一條紅色的底線 */
             }
+            .class-name {
+            color: red;  /* Set the text color to red */
+            }
      </style>
   </head>
 <body>
    <h1>AI Detection Results</h1>
-
-   {% if mushroom_count == 0 %}
-   <!-- <h2>Detected Classes:</h2> -->
-   <h2>Value measurement:</h2>
-   <p>
-   {% for class_name in detected_classes %}
-         <span>{{ class_name }}</span>
-         <!-- {% if not loop.last %}, {% endif %} -->
-   {% endfor %}
-   </p>
-   {% endif %}
 
    <div class="image-container">
       <h2>Original Image:</h2>
@@ -59,6 +51,15 @@
 
    <div style="clear: both;"></div>
 
+   {% if mushroom_count == 0 %}
+   <!-- <h2>Detected Classes:</h2> -->
+   <h2>Value Detection and Recognition:
+   {% for class_name in detected_classes %}
+         <span class="class-name">{{ class_name }}</span>
+         <!-- {% if not loop.last %}, {% endif %} -->
+   {% endfor %}
+   </h2>
+   {% endif %}
 
    {% if mushroom_count > 0 %}
    <!-- <h2>Mushroom Count:</h2>

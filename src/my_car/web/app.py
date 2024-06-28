@@ -12,12 +12,16 @@ import glob
 from PIL import Image
 import shutil
 import json
+import psycopg2
 
 app = Flask(__name__)
 # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024
 
 car_sensor = mySQL("car_sensor")
 maps = mySQL("maps")
+
+DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
+                "host":"192.168.1.180", "port":"5432"}		# sql 資訊
 	
 class roslaunch_process():
     @classmethod
@@ -117,26 +121,84 @@ def sqlview():
 	maps_list = maps.read_sql()[1]
 	return render_template('SQLView.html', title='SQL View', list_users = list_users, maps=maps_list)
 
-@app.route('/edit/<int:no>', methods=['GET', 'POST'])
-def edit(no):
-    if request.method == 'POST':
-        # 在這裡處理表單提交的資料
-        # 例如，您可以從表單中獲取新的資料，然後更新資料庫中的記錄
-        new_data = request.form['new_data']
-        car_sensor.update_sql(no, new_data)
-        return redirect(url_for('sqlview'))
-    else:
-        # 在這裡準備表單
-        # 例如，您可以從資料庫中獲取當前的資料，然後將其填充到表單中
-        current_data = car_sensor.read_sql(no)
-        return render_template('edit.html', data=current_data)
+# 伺服器端
+@app.route('/get_table_data', methods=['GET'])
+def get_table_data():
+    # 從資料庫中獲取表格的資料
+    # list_users = car_sensor.read_sql()
+    # return jsonify(list_users)
+    try:
+        # 從資料庫中獲取表格的資料
+        list_users = car_sensor.read_sql()
+        return jsonify(list_users)
+    except Exception as e:
+        print(f"錯誤: {e}")
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/delete/<int:no>', methods=['POST'])
-def delete(no):
-    # 在這裡處理刪除記錄的請求
-    # 例如，您可以從資料庫中刪除指定的記錄
-    car_sensor.del_sql(no)
-    return redirect(url_for('sqlview'))
+
+@app.route('/edit/<int:record_no>', methods=['GET', 'POST'])
+def edit(record_no):
+    # Connect to your postgres DB
+    conn = psycopg2.connect(**DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    if request.method == 'POST':
+        new_area = request.form['area']
+        cur.execute("UPDATE car_sensor SET area = %s WHERE record_no = %s", (new_area, record_no))
+        conn.commit()
+        return redirect(url_for('sqlview'))
+
+    cur.execute("SELECT area FROM car_sensor WHERE record_no = %s", (record_no,))
+    area = cur.fetchone()[0]
+    return render_template('edit.html', area=area)
+
+@app.route('/sql_upload', methods=['GET'])
+def handle_request():
+    record_no = request.args.get('record_no')
+    area = request.args.get('area')
+    temperature = request.args.get('temperature')
+    humidity = request.args.get('humidity')
+    co2 = request.args.get('co2')
+    time = request.args.get('time')
+
+    # Connect to your postgres DB
+    conn = psycopg2.connect(**DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    # Find the maximum record_no in the database
+    cur.execute("SELECT MAX(record_no) FROM car_sensor")
+    max_record_no = cur.fetchone()[0]
+
+    # If the table is empty, start from 1, otherwise increment the maximum record_no
+    if max_record_no is None:
+        record_no = '1'
+    else:
+        record_no = str(int(max_record_no) + 1)
+
+    # Insert the sensor value into the DB
+    cur.execute("INSERT INTO car_sensor (record_no, area, temperature, humidity, co2, time) VALUES (%s, %s, %s, %s, %s, %s)", 
+				(record_no, area, temperature, humidity, co2, time))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return 'OK', 200
+
+@app.route('/delete/<int:record_no>', methods=['POST'])
+def delete(record_no):
+    # Connect to your postgres DB
+    conn = psycopg2.connect(**DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    # Delete the record from the database
+    cur.execute("DELETE FROM car_sensor WHERE record_no = %s", (record_no,))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return redirect(url_for('sqlview'))  # Redirect to SQLView.html
 
 
 @app.route('/add_student', methods=['POST'])
@@ -148,7 +210,7 @@ def add_student():
         email = request.form['email']
         cur.execute("INSERT INTO students (fname, lname, email) VALUES (%s,%s,%s)", (fname, lname, email))
         conn.commit()
-        flash('Student Added successfully')
+        flash('Student Added successfully')						
         return redirect(url_for('Index'))
 
 
@@ -165,48 +227,6 @@ def robotControl():
 @app.route('/AIdetect')
 def upload_file():
    return render_template('uploads.html',title='AIdetect')
-
-# @app.route('/AIdetect', methods = ['POST'])
-# def uploads():
-# 	if request.method == 'POST':
-# 		f = request.files['file']
-# 		filename = secure_filename(f.filename)
-# 		filepath = os.path.join('./static/uploads', filename)
-# 		f.save(filepath)
-
-# 		print(filepath)
-# 		# 假設你已經設定好 YOLOv8
-# 		model = YOLO('static/weights/Analog_meter_v15.pt')
-
-# 		result_image = model.predict(filepath, save=True)
-
-# 		# 獲取所有的預測資料夾
-# 		folders = glob.glob('runs/detect/predict*')
-
-# 		# 使用資料夾的修改時間來找出最新的資料夾
-# 		latest_folder = max(folders, key=os.path.getmtime)
-			
-# 		result_image = os.path.join(latest_folder, filename)
-
-# 		# 將結果影像移動到static資料夾中
-# 		dst_path = os.path.join('./static/results/', filename)
-
-# 		# 檢查目標位置是否已經存在同名檔案
-# 		if os.path.exists(dst_path):
-# 			# 如果存在，則先刪除它
-# 			os.remove(dst_path)
-		
-# 		shutil.move(result_image, './static/results/')
-
-# 		# 更新結果影像的路徑
-# 		result_image = os.path.join('results', filename)
-
-# 		# return '物件偵測完成，結果影像已儲存到: {}'.format(result_image)
-		
-# 		# 返回一個HTML模板，並將結果影像的路徑傳遞給該模板
-# 		return render_template('results.html', result_image=result_image)
-# 	else:
-# 		return '沒有收到檔案', 400
 
 @app.route('/AIdetect', methods = ['GET', 'POST'])
 def uploads():
