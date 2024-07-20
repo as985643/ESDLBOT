@@ -9,8 +9,13 @@ $(document).ready(function() {
 	
     // Connecting to ROS
     // -----------------
+    // let cookies = document.cookie.split('; ');
+    // let ipCookie = cookies.find(row => row.startsWith('serverip='));
+    // let ip = ipCookie.split('=')[1];
+    var ip = $.cookie("serverip");
     var ros = new ROSLIB.Ros({
-        url: 'ws://192.168.1.180:9090'
+        // url: 'ws://192.168.1.180:9090'
+        url: 'ws://' + ip + ':9090'
     });
 
     // Create the main viewer.

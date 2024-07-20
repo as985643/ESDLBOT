@@ -17,7 +17,7 @@ from sensor_msgs.msg import Image as ROSImage
 from cv_bridge import CvBridge
 
 # Load the YOLOv8 model
-model = YOLO('../weights/header_v14.pt')
+model = YOLO('../weights/Analog_meter_v15.pt')
 
 MIN_SCORE = 0.4 # Minimum object detection score
 

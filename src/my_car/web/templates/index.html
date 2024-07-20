@@ -2,7 +2,7 @@
 {% block content %}
 <!-- Header -->
 <header id="header">
-	<a href="index.html" class="logo"><strong>Editorial</strong> by ESDL</a>
+	<a href="/" class="logo"><strong>Editorial</strong> by ESDL</a>
 	<!-- <ul class="icons">
 		<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
 		<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
@@ -10,6 +10,17 @@
 		<li><a href="#" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
 		<li><a href="#" class="icon brands fa-medium-m"><span class="label">Medium</span></a></li>
 	</ul> -->
+	<style>
+		#main {
+		background-color: #ADD8E6; /* 這是淺灰色的代碼 */
+		}
+		.a.toggle::before {
+			color: #90f3f3;
+		}
+		.slider {
+		background-color: #ADD8E6; /* 這是淺灰色的代碼 */
+		}
+	</style>
 </header>
 
 <!-- Banner -->
@@ -17,33 +28,54 @@
 	<div class="content">
 		<header>
 			<h1>ESDLBOT</h1>
-			<p>Toggle the button below to enable the sensor!</p>
+			<p>The indicator indicates whether the sensor is operating properly!</p>
 		</header>
 		
-		<label>
+		<!-- <label>
 			<input type="checkbox" name="" id="" class="swcheckbox">
 			<span class="swbtn-box swmiddle">
 				<span class="swbtn"></span>      
 			</span>
 			<span class="swtext swmiddle">LiDAR</span>
-		</label>
+		</label> -->
+		<!-- <span id="scar-indicator" class="swtext swmiddle">Scar Node Status: Unknown</span> -->
+		<!-- <div id="scar-indicator" style="width: 50px; height: 50px; border-radius: 50%; background-color: red;"></div> -->
+
+		<div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 30px;">
+			<div id="scan-indicator" style="width: 30px; height: 30px; border-radius: 50%; background-color: red; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: background-color 0.5s;"></div>
+			<span style="margin-left: 50px; font-size: 20px;"><strong>LiDAR Status</strong></span>
+		</div>
+
+		<div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 30px;">
+			<div id="imu-indicator" style="width: 30px; height: 30px; border-radius: 50%; background-color: red; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: background-color 0.5s;"></div>
+			<span style="margin-left: 50px; font-size: 20px;"><strong>Imu Status</strong></span>
+		</div>
+
+		<div style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 30px;">
+			<div id="webcam-indicator" style="width: 30px; height: 30px; border-radius: 50%; background-color: red; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: background-color 0.5s;"></div>
+			<span style="margin-left: 50px; font-size: 20px;"><strong>Webcam Status</strong></span>
+		</div>
+		  
+
+		<!-- <label>
 		<br>
-		<label>
-			<input type="checkbox" name="" id="" class="swcheckbox">
-			<span class="swbtn-box swmiddle">
-				<span class="swbtn"></span>      
-			</span>
-			<span class="swtext swmiddle">Motor</span>
-		</label>
+			<label>
+				<input type="checkbox" name="" id="" class="swcheckbox">
+				<span class="swbtn-box swmiddle">
+					<span class="swbtn"></span>      
+				</span>
+				<span class="swtext swmiddle">Motor</span>
+			</label>
 		<br>
-		<label>
 			<input type="checkbox" name="" id="" class="swcheckbox">
 			<span class="swbtn-box swmiddle">
 				<span class="swbtn"></span>      
 			</span>
 			<span class="swtext swmiddle">Webcam</span>
 		</label>
-		<br>
+		<br> -->
+
+
 
 		<ul class="actions">
 			<li><a data-toggle="modal" data-target="#exampleModal" class="button big">Navigation</a></li>
@@ -52,7 +84,7 @@
 		
 	</div> <!-- content -->
 	<span class="image object">
-		<img src="{{url_for('static', filename='img/ESDL_CAR_v2-1.png')}}" alt="" />
+		<img src="{{url_for('static', filename='img/ESDL_CAR_v2-3.jpg')}}" alt="" width="300" height="200"/>
 	</span>
 </section><!-- banner -->	
 			
@@ -64,5 +96,103 @@
  <script type="text/javascript" src="{{ url_for('static', filename='assets/js/breakpoints.min.js')}}"></script>
  <script type="text/javascript" src="{{ url_for('static', filename='assets/js/util.js')}}"></script>
  <script type="text/javascript" src="{{ url_for('static', filename='assets/js/main.js')}}"></script>
+ <script>
+	var ip = $.cookie("serverip");
+	var ros = new ROSLIB.Ros({
+		// url: 'ws://192.168.1.180:9090'
+		url: 'ws://' + ip + ':9090'
+	});
+  
+	ros.on('connection', function() {
+	  console.log('Connected to websocket server.');
+	});
+  
+	ros.on('error', function(error) {
+	  console.log('Error connecting to websocket server: ', error);
+	});
+  
+	ros.on('close', function() {
+	  console.log('Connection to websocket server closed.');
+	});
+  
+	// 創建一個名為'/scan'的新主題
+	var scanTopic = new ROSLIB.Topic({
+		ros : ros,
+		name : '/scan',
+		messageType : 'sensor_msgs/LaserScan' // 將消息類型設置為'sensor_msgs/LaserScan'
+	});
+
+	var scanIndicator = document.getElementById('scan-indicator');
+	scanIndicator.style.backgroundColor = 'red';
+
+	scanTopic.subscribe(function(message) {
+		console.log('Received message on ' + scanTopic.name);
+	
+		// 更新指示燈的狀態
+		scanIndicator.style.backgroundColor = 'green';
+		});
+
+	// 創建一個名為'/usb_cam/image_raw/compressed'的新主題
+	var webcamTopic = new ROSLIB.Topic({
+		ros : ros,
+		name : '/usb_cam/image_raw/compressed',
+		messageType : 'sensor_msgs/CompressedImage' // 請將此消息類型更改為你的'/usb_cam/image_raw/compressed'節點使用的消息類型
+	});
+
+	var webcamIndicator = document.getElementById('webcam-indicator');
+	webcamIndicator.style.backgroundColor = 'red';
+
+	webcamTopic.subscribe(function(message) {
+		console.log('Received message on ' + webcamTopic.name);
+	
+		// 更新指示燈的狀態
+		webcamIndicator.style.backgroundColor = 'green';
+		});
+
+	// 創建一個名為'/imu/data_raw'的新主題
+	var imuTopic = new ROSLIB.Topic({
+		ros : ros,
+		name : '/imu/data_raw',
+		messageType : 'sensor_msgs/Imu' // 請將此消息類型更改為你的'/imu/data_raw'節點使用的消息類型
+	});
+
+	var imuIndicator = document.getElementById('imu-indicator');
+	imuIndicator.style.backgroundColor = 'red';
+
+	imuTopic.subscribe(function(message) {
+		console.log('Received message on ' + imuTopic.name);
+	
+		// 更新指示燈的狀態
+		imuIndicator.style.backgroundColor = 'green';
+		});
+
+	// 每隔 5 秒檢查一次是否有訂閱到訊息
+	setInterval(function() {
+	if (scanIndicator.style.backgroundColor == 'green') {
+		console.log('Received message on /scan in the last 5 seconds.');
+	} else {
+		console.log('No message received on /scan in the last 5 seconds.');
+	}
+	
+	if (webcamIndicator.style.backgroundColor == 'green') {
+		console.log('Received message on /usb_cam/image_raw/compressed in the last 5 seconds.');
+	} else {
+		console.log('No message received on /usb_cam/image_raw/compressed in the last 5 seconds.');
+	}
+
+	if (imuIndicator.style.backgroundColor == 'green') {
+		console.log('Received message on /imu/data_raw in the last 5 seconds.');
+	} else {
+		console.log('No message received on /imu/data_raw in the last 5 seconds.');
+	}
+	
+	// 將指示燈的狀態重置為紅色
+	scanIndicator.style.backgroundColor = 'red';
+	webcamIndicator.style.backgroundColor = 'red';
+	imuIndicator.style.backgroundColor = 'red';
+	}, 5000);
+
+
+  </script>
 
 {% endblock content %}

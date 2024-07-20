@@ -217,7 +217,7 @@ class Alignment():
           Anticlockwise rotation until found AprilTag code.
         '''
         self.Turning(0.2)
-        self.listen_tf_frame('usb_cam', 'tag_1')
+        self.listen_tf_frame('/usb_cam', 'tag_1')
         self.allStop()
         return True
     

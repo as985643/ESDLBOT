@@ -1,0 +1,15 @@
+<launch>
+    <!-- 啟動 apriltag_ros 節點 -->
+    <include file="$(find apriltag_ros)/launch/continuous_detection.launch">
+        <arg name="camera_name" value="usb_cam"/>
+        <arg name="image_topic" value="/usb_cam/image_raw"/>
+        <arg name="camera_info_url" value="file://$(find usb_cam)/camera_info/camera.yaml"/>
+        <!-- <arg name="camera_info_url" value=""/>
+        <arg name="publish_detections_image" value="true"/> -->
+    </include>
+
+    <!-- Republish Video -->
+    <node pkg="image_transport" type="republish" name="republish" args="compressed in:=usb_cam/image_raw raw out:=usb_cam/republish_frame"/>
+    <!-- 啟動 alignment.py 節點 -->
+    <node pkg="my_car" type="alignment.py" name="alignment_node" output="screen"/>
+</launch>

@@ -1,4 +1,4 @@
-image: /home/esdl/feng_ws/src/my_car/web/static/lab0622.pgm
+image: /home/esdl/feng_ws/src/my_car/web/static/maps/lab0622.pgm
 resolution: 0.050000
 origin: [-12.293076, -8.120595, 0.000000]
 negate: 0

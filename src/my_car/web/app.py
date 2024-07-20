@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for,g,jsonify,request,make_response,send_from_directory,redirect
+from flask import Flask, render_template, url_for,g,jsonify,request,make_response,send_from_directory,redirect,flash
 import subprocess
 import signal
 import os
@@ -13,6 +13,8 @@ from PIL import Image
 import shutil
 import json
 import psycopg2
+import math
+import numpy as np
 
 app = Flask(__name__)
 # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024
@@ -22,7 +24,10 @@ maps = mySQL("maps")
 
 DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
                 "host":"192.168.1.180", "port":"5432"}		# sql 資訊
-	
+
+# DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
+#                 "host":"192.168.67.102", "port":"5432"}		# sql 資訊
+
 class roslaunch_process():
     @classmethod
     def start_navigation(self,mapname):
@@ -224,107 +229,203 @@ def robotControl():
 # 	maps_list = maps.read_sql()[1]
 # 	return render_template('AIdetect.html', title='AIdetect', maps=maps_list)
 
+# def correct_image(image, box_coordinates):
+#     # Get the coordinates of the bounding box
+#     x1, y1, x2, y2 = box_coordinates
+
+#     # Calculate the center of the bounding box
+#     center_x = (x1 + x2) / 2
+#     center_y = (y1 + y2) / 2
+
+#     # Calculate the width and height of the bounding box
+#     width = x2 - x1
+#     height = y2 - y1
+
+#     # Calculate the angle of rotation
+#     angle = np.arctan2(height, width)
+
+#     # Create a rotation matrix
+#     M = cv2.getRotationMatrix2D((center_x, center_y), angle, 1)
+
+#     # Apply the rotation to the image
+#     corrected_image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+#     return corrected_image
+
 @app.route('/AIdetect')
 def upload_file():
    return render_template('uploads.html',title='AIdetect')
+# @app.route('/standby', methods=['POST'])
+# def standby():
+#     command = "rosrun mycobot_startup_pose startup_pose.py"
+#     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+#     process.wait()
+#     return "Node started!"
 
 @app.route('/AIdetect', methods = ['GET', 'POST'])
 def uploads():
-	if request.method == 'POST':
-		f = request.files['file']
-		filename = secure_filename(f.filename)
-		filepath = os.path.join('./static/uploads', filename)
-		f.save(filepath)
+    if request.method == 'POST':
+        f = request.files['file']
+        filename = secure_filename(f.filename)
+        filepath = os.path.join('./static/uploads', filename)
+        f.save(filepath)
 
-		# 在這裡將 '/static/' 從文件路徑中移除，以適應 url_for 函數
-		url_for_filepath = filepath.replace('./static/', '')
+        url_for_filepath = filepath.replace('./static/', '')
 
-		# 獲取使用者選擇的模型
-		model_choice = request.form.get('model_choice')
+        model_choice = request.form.get('model_choice')
 
-		# 根據使用者的選擇來決定要使用哪個模型
-		if model_choice == 'Analog_meter_v15':
-			model_path = 'static/weights/Analog_meter_v15.pt'
-		elif model_choice == 'count_mushrooms':
-			model_path = 'static/weights/count_mushrooms.pt'
-		elif model_choice == 'digital_meter':
-			model_path = 'static/weights/digital_meter.pt'
-		else:
-			return '未知的模型選擇', 400
+        if model_choice == 'Analog_meter':
+            model_path = 'static/weights/Analog_meter_v18.pt'
+        elif model_choice == 'digital_meter':
+            model_path = 'static/weights/digital_meter_v3.pt'
+        elif model_choice == 'count_mushrooms':
+            model_path = 'static/weights/count_mushrooms_v3.pt'
+        elif model_choice == 'pollution':
+            model_path = 'static/weights/pollution.pt'
+        else:
+            return '未知的模型選擇', 400
 
-		model = YOLO(model_path)
+        model = YOLO(model_path)
 
-		# result_image = model.predict(filepath, save=True)
-		# Run inference on the uploaded image
-		result_image = model([filepath], save=True)
+        result_image = model([filepath], save=True)
 
-		# 將結果轉換為 JSON 格式
-		predictions = result_image[0].tojson()
-		predictions = json.loads(predictions)
-		# print(predictions)
+        predictions = result_image[0].tojson()
+        predictions = json.loads(predictions)
 
-		# 根據 x 座標排序預測結果
-		predictions.sort(key=lambda x: (x['box']['x1'], x['box']['y1']))
+        predictions.sort(key=lambda x: (x['box']['x1'], x['box']['y1']))
 
-		# 初始化計數器
-		count = 0
-		detected_classes = []
+        count = 0
+        detected_classes = []
+        transcription_results = []
 
-		# 遍歷每一個邊界框
-		for prediction in predictions:
-			# 獲取類別名稱
-			class_name = prediction['name']
-			detected_classes.append(class_name)
-			# 如果這個邊界框的類別是 'King oyster mushroom'
-			if class_name == 'King_oyster_mushroom':
-				# 增加計數器
-				count += 1
+        for prediction in predictions:
+            class_name = prediction['name']
+            detected_classes.append(class_name)
+            if class_name == 'King_oyster_mushroom':
+                count += 1
 
-		# 如果模型是 count_mushrooms，則計算杏鮑菇的數量
-		# if model_choice == 'count_mushrooms':
-			# 假設 result 是一個包含所有被辨識出的物件的列表，每個物件都有一個 'class' 鍵和一個 'bbox' 鍵
-			# print(result_image[0].boxes)
-		# 	mushroom_count = sum(1 for box in result_image[0].boxes if box['class'] == 'King_oyster_mushroom')
-		# else:
-		# 	mushroom_count = None
+        folders = glob.glob('runs/detect/predict*')
+        latest_folder = max(folders, key=os.path.getmtime)
+        result_image = os.path.join(latest_folder, filename)
 
-		# 將張量轉換為列表
-		# predictions = predictions.tolist()
+        dst_path = os.path.join('./static/results/', filename)
+        if os.path.exists(dst_path):
+            os.remove(dst_path)
+        shutil.move(result_image, './static/results/')
+        result_image = os.path.join('results', filename)
 
-		# 計算King oyster mushroom類別的物件數量
-		# mushroom_count = sum(1 for p in predictions if p['class'] == 'King_oyster_mushroom')
+        model_gauge = YOLO('static/weights/Analog_meter_v18.pt')
+        image_b4_color = cv2.imread(filepath)
 
-		# 獲取所有的預測資料夾
-		folders = glob.glob('runs/detect/predict*')
+        results_gauge = model_gauge(image_b4_color)
 
-		# 使用資料夾的修改時間來找出最新的資料夾
-		latest_folder = max(folders, key=os.path.getmtime)
-			
-		result_image = os.path.join(latest_folder, filename)
+        if results_gauge[0] is not None:
+            predictions_gauge = results_gauge[0].tojson()
+        else:
+            print("results_gauge[0] is None")
 
-		# 將結果影像移動到static資料夾中
-		dst_path = os.path.join('./static/results/', filename)
+        predictions_gauge = results_gauge[0].tojson()
+        predictions_gauge = json.loads(predictions_gauge)
 
-		# 檢查目標位置是否已經存在同名檔案
-		if os.path.exists(dst_path):
-			# 如果存在，則先刪除它
-			os.remove(dst_path)
-		
-		shutil.move(result_image, './static/results/')
+        object_coordinates_gauge = []
+        labels_found_gauge = []
+        for prediction in predictions_gauge:
+            box = prediction["box"]
+            x1 = box['x1'] - box['x2']/2
+            y1 = box['y1'] - box['y2']/2
+            x2 = x1 + box['x2']
+            y2 = y1 + box['y2']
+            object_coordinates_gauge.append([x1, y1, x2, y2])
 
-		# 更新結果影像的路徑
-		result_image = os.path.join('results', filename)
+            # meter_box_coordinates = [x1, y1, x2, y2]
 
-		# return '物件偵測完成，結果影像已儲存到: {}'.format(result_image)
-		
-		# 返回一個HTML模板，並將結果影像的路徑傳遞給該模板
-		return render_template('results.html', result_image=result_image, mushroom_count=count,
-								original_image=url_for_filepath, detected_classes=detected_classes)
+            label = prediction['name']
+            labels_found_gauge.append(label)
 
-		# ... 其他程式碼不變 ...
-	else:
-		# 如果是 GET 請求，則顯示上傳表單
-		return render_template('uploads.html',title='AIdetect')
+        # corrected_image = correct_image(image_b4_color, meter_box_coordinates)
+        # results_gauge = model_gauge(corrected_image)
+
+        if "The needle base" in labels_found_gauge and "The needle tip" in labels_found_gauge:
+            center_indexes = [index for index, x in enumerate(labels_found_gauge) if x == "The needle base"]
+            center_coordinates = object_coordinates_gauge[center_indexes[0]]
+            center_x_center = int(center_coordinates[0] + (center_coordinates[2] - center_coordinates[0])/2)
+            center_y_center = int(center_coordinates[1] + (center_coordinates[3] - center_coordinates[1])/2)
+
+            needle_tip_indexes = [index for index, x in enumerate(labels_found_gauge) if x == "The needle tip"]
+            needle_tip_coordinates = object_coordinates_gauge[needle_tip_indexes[0]]
+            center_x_needle_tip = int(needle_tip_coordinates[0] + (needle_tip_coordinates[2] - needle_tip_coordinates[0])/2)
+            center_y_needle_tip = int(needle_tip_coordinates[1] + (needle_tip_coordinates[3] - needle_tip_coordinates[1])/2)
+
+            dy = center_y_needle_tip - center_y_center
+            dx = center_x_needle_tip - center_x_center
+            theta = math.atan2(dy, dx)
+            theta = math.degrees(theta)
+            theta = round(theta)
+
+            if theta < 0:
+                theta *= -1
+                theta = (180 - theta) + 180
+
+            theta = theta - 90
+
+            if theta < 0:
+                theta *= -1
+                theta = theta + 270
+
+            needle_tip_found = False
+            pressure_gauge_4000_found = False
+            pressure_gauge_200_found = False
+            Pressure_gauge_140_found = False
+            Humidity_meter_found = False
+            Temperature_meter_50_found = False
+            for label_index, label in enumerate(labels_found_gauge):
+                if "The needle tip" in label:
+                    needle_tip_found = True
+
+                if "Pressure gauge 4000" in label:
+                    pressure_gauge_4000_found = True
+
+                if "Pressure gauge 200" in label:
+                    pressure_gauge_200_found = True
+                    
+                if "Pressure gauge 140" in label:
+                    Pressure_gauge_140_found = True
+
+                if "Humidity meter" in label:
+                    Humidity_meter_found = True
+
+                if "Temperature meter 50" in label:
+                    Temperature_meter_50_found = True
+
+            if needle_tip_found and pressure_gauge_4000_found:
+                psi = int(15.21*theta-638.21)
+                transcription_results.append(str(psi) + "psi")
+
+            if needle_tip_found and pressure_gauge_200_found:
+                kPa = int(0.053*theta-2.5678)
+                transcription_results.append(str(kPa) + "kPa")
+                
+            if needle_tip_found and Pressure_gauge_140_found:
+                psi = int(0.5942*theta-23.65)  # 這裡的公式可能需要根據實際情況進行調整
+                transcription_results.append(str(psi) + "psi")
+                
+            if needle_tip_found and Temperature_meter_50_found:
+                degrees = int(0.3185*theta-47.29)
+                transcription_results.append( "Temperature: "+str(degrees) + "°C")
+
+            if needle_tip_found and Humidity_meter_found:
+                percentage = int(0.2975*theta+3.038)
+                transcription_results.append( "Humidity: "+ str(percentage) + "%")
+
+            if needle_tip_found and "Pressure gauge 160" in label:
+                kPa = int(15.21*theta-638.21)  # 這裡的公式可能需要根據實際情況進行調整
+                transcription_results.append(str(kPa) + "kPa")
+
+        return render_template('results.html', result_image=result_image, mushroom_count=count,
+                                original_image=url_for_filepath, detected_classes=detected_classes,
+                                transcription_results=transcription_results, title='AIdetect')
+    else:
+        return render_template('uploads.html',title='AIdetect')
 
 @app.route('/pathplan')
 def pathplan():
@@ -398,7 +499,18 @@ def deletemap():
 	os.system("rm -rf"+" "+os.getcwd()+"/static/maps/"+mapname+".yaml "+os.getcwd()+"/static/maps/"+mapname+".png "+os.getcwd()+"/static/maps/"+mapname+".pgm")
 
 	maps.del_map(mapname)
-	return ("successfully deleted map")	
+	# return ("successfully deleted map")
+	# flash("successfully deleted map")
+	# return redirect(url_for('navigation'))
+
+	# 重新執行資料庫查詢
+	maps_list = maps.read_sql()[1]
+	return render_template('navigation.html', title='Navigation',maps = maps_list)
+
+	# 強制更新資料來源
+	# global maps_list
+	# maps_list = maps.read_sql()[1]
+	# return "successfully deleted map"
 
 
 
@@ -462,7 +574,11 @@ def savemap():
 
 	os.system("rosrun map_server map_saver -f"+" "+os.path.join(os.getcwd(),"static/maps/",mapname))
 	os.system("convert"+" "+os.getcwd()+"/static/maps/"+mapname+".pgm"+" "+os.getcwd()+"/static/maps/"+mapname+".png")
-	maps.add_sql([mapname])
+	# 讀取地圖數據
+	with open(os.path.join(os.getcwd(), "static/maps/", mapname+".png"), 'rb') as f:
+		mapdata = f.read()
+
+	maps.add_sql([mapname, mapdata])
 	
 	# with get_db():
 	# 	try:
@@ -472,7 +588,21 @@ def savemap():
 	# 		c.close()
 	# 	except Error as e:
 	# 		print(e)
-    
+
+    # 讀取地圖數據
+	# with open(os.path.join(os.getcwd(), "static/maps/", mapname+".png"), 'rb') as f:
+	# 	mapdata = f.read()
+
+	# conn = psycopg2.connect(**DATABASE_URL, sslmode='require')
+	# cur = conn.cursor()
+
+	# insert = cur.execute("INSERT INTO maps (name, data) VALUES (%s, %s)")
+	# cur.execute(insert, (mapname, psycopg2.Binary(mapdata)))
+
+	# conn.commit()
+	# cur.close()
+	# conn.close()
+		
 	return("success")
 
 
@@ -491,17 +621,20 @@ def restart():
 	os.system("restart now") 
 	return("restarting the robot")
 
+# debug
+@app.errorhandler(404)
+def page_not_found(error):
+    return "這個頁面不存在！", 404
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    # 可以在這裡記錄錯誤訊息
+    return "發生了一個錯誤！", 500
+
 
 
 if __name__ == '__main__':
 	subprocess.Popen(["roslaunch", "rosbridge_server", "rosbridge_websocket.launch"])
 	subprocess.Popen(["rosrun", "robot_pose_publisher", "robot_pose_publisher"])
 	
-	app.run(host='0.0.0.0', port=8000, debug=False)    
-	
-	
-	
-	
-	
-	
-	
+	app.run(host='0.0.0.0', port=8000, debug=False)

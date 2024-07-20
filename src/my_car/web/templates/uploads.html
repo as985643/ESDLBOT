@@ -13,6 +13,9 @@
                 font-size: 48px;  /* 調整為你想要的大小 */
                 border-bottom: 2px solid red;  /* 在h1元素下方添加一條紅色的底線 */
             }
+            #main {
+                background-color: #ADD8E6;
+            }
         </style>
     </head>
 <body>
@@ -26,9 +29,10 @@
 
     <form method="POST" enctype="multipart/form-data">
         <select name="model_choice">
-            <option value="Analog_meter_v15">Analog Meter Detection</option>
+            <option value="Analog_meter">Analog Meter Recognition</option>
             <option value="count_mushrooms">Mushroom Counting</option>
-            <option value="digital_meter">digital meter</option>
+            <option value="digital_meter">Digital Meter Recognition</option>
+            <option value="pollution">Pollution Detection</option>
         </select>
         <input type="file" name="file">
         <input type="submit" value="Upload">

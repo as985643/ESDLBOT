@@ -10,6 +10,9 @@ import psycopg2
 DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
                 "host":"192.168.1.180", "port":"5432"}		# sql 資訊
 
+# DATABASE_URL = {"database":"esdl", "user":"esdl", "password":"bj/6m06",
+#                 "host":"192.168.67.102", "port":"5432"}		# sql 資訊
+
 
 class mySQL:
 	def __init__(self, table_name):
@@ -246,7 +249,7 @@ class mySQL:
 		try: 
 			conn = psycopg2.connect(**DATABASE_URL, sslmode='require')							# 連接 Postgresql
 			cursor = conn.cursor()
-			cursor.execute(f"""DELETE FROM {self.table_name} WHERE names = '{name}'""")
+			cursor.execute(f"""DELETE FROM {self.table_name} WHERE column_name = '{name}'""")
 			conn.commit()
 			count = cursor.rowcount
 			print(count, "Record successfully delete from table")

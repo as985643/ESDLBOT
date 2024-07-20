@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>杏鮑菇數量計算</title>
+    <style>
+        #main {
+            background-color: #ADD8E6;
+        }
+    </style>
+</head>
+<body>
+    <h1>上傳你的杏鮑菇圖片</h1>
+    <form action="http://192.168.1.180:8000/count_mushrooms" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*">
+        <input type="submit" value="計算杏鮑菇數量">
+    </form>
+</body>
+</html>
+{% endblock content %}

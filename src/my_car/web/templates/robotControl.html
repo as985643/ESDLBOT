@@ -3,6 +3,13 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/nipple.min.js')}}"></script>
 <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<header>
+    <style>
+        #main {
+            background-color: #ADD8E6;
+        }
+    </style>
+</header>
 <div style="float:left; width:50%;" id="param">
 	<div style="clear:both; margin:50px 0 0 0 ">
 		<div style="float:left; width:40%;">
@@ -14,7 +21,8 @@
 			
 <div style="float:left; width:100%;">
 	<button id="btnup" onclick="upFunction()" >上升</button>
-	<button id="btndown" onclick="downFunction()" >下降</button><br><br>
+	<button id="btndown" onclick="downFunction()" >下降</button>
+	<!-- <button id="btnStandby" onclick="standbyFunction()" >Standby</button><br><br> -->
 </div>
 <img width="70%" id="image_sub" style="transform:rotate(0deg);"/>
 <div id="zonejoystick" class="joy-stick"></div>
@@ -63,6 +71,11 @@
 		goal_pub.publish(pos_msg);
 		
 	}
+
+	// function standbyFunction() {
+	//   fetch('/standby', {method: 'POST'});
+	// }
+	
 	// Camera
 	var listener = new ROSLIB.Topic({
 	ros : ros,

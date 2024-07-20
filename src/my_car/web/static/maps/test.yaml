@@ -1,6 +1,6 @@
-image: /home/user/jin_ws/src/my_car/web/static/test.pgm
+image: /home/esdl/feng_ws/src/my_car/web/static/maps/test.pgm
 resolution: 0.050000
-origin: [-6.913889, -2.293427, 0.000000]
+origin: [-3.100023, -5.079749, 0.000000]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196

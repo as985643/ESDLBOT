@@ -34,6 +34,12 @@
             .class-name {
             color: red;  /* Set the text color to red */
             }
+         #main {
+            background-color: #ADD8E6;
+         }
+         .transcription_results {
+            color: red;
+         }
      </style>
   </head>
 <body>
@@ -53,20 +59,32 @@
 
    {% if mushroom_count == 0 %}
    <!-- <h2>Detected Classes:</h2> -->
-   <h2>Value Detection and Recognition:
-   {% for class_name in detected_classes %}
-         <span class="class-name">{{ class_name }}</span>
-         <!-- {% if not loop.last %}, {% endif %} -->
-   {% endfor %}
-   </h2>
+   {% if '0' in detected_classes or '1' in detected_classes or '2' in detected_classes or 
+         '3' in detected_classes or '4' in detected_classes or '5' in detected_classes or 
+         '6' in detected_classes or '7' in detected_classes or '8' in detected_classes or 
+         '9' in detected_classes %}
+         <h2>
+            <span>Transcription Results: </span>
+            {% for class_name in detected_classes %}
+                <span class="class-name">{{ class_name }}</span>
+            {% endfor %}
+        </h2>
+   {% endif %}
+
    {% endif %}
 
    {% if mushroom_count > 0 %}
-   <!-- <h2>Mushroom Count:</h2>
-   <p>{{ mushroom_count }}</p> -->
    <h2>Mushroom Count : <span class="count">{{ mushroom_count }}</span></h2>
    {% endif %}
 
+   {% if 'The needle base' in detected_classes %}
+   <h2>
+      <span>Transcription Results: </span>
+      {% for result in transcription_results %}
+          <span class="transcription_results">{{ result }}</span>
+      {% endfor %}
+  </h2>
+  {% endif %}
 
    <a href="{{ url_for('upload_file') }}" class="myButton">返回</a>
 </body>

@@ -7,7 +7,7 @@ from mySQL import mySQL
 maps = mySQL("ros_maps")
 
 # Load the PGM file
-img = Image.open('/home/esdl/feng_ws/src/my_car/web/static/F.Yang.pgm')
+img = Image.open('/home/esdl/feng_ws/src/my_car/web/static/maps/lab2.pgm')
 
 # Convert the image to a NumPy array
 img_array = np.array(img)
@@ -25,9 +25,10 @@ conn = psycopg2.connect(database="esdl", user="esdl", password="bj/6m06", host="
 cur = conn.cursor()
 
 # Insert the map data into the database
-cur.execute("INSERT INTO maps (record_no, name, data) VALUES (%s, %s, %s)", ('5', '0622', img_str))
-maps_list = maps.read_sql()[1]
-print(maps_list)
+cur.execute("INSERT INTO maps (record_no, column_name, data_type) VALUES (%s, %s, %s)", ('5', 'lab2', img_str))
+# cur.execute("INSERT INTO maps (column_name, data_type) VALUES (%s, %s)", ('lab2', img_str))
+# maps_list = maps.read_sql()[1]
+# print(maps_list)
 
 # cur.execute("SELECT * FROM maps")
 

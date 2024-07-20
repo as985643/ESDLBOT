@@ -270,7 +270,7 @@ a {
 .box-out {
   background: #d2f7fc;
   height: 100%;
-  width: 230px;
+  width: 100px;
   position: fixed;
   top: 60px;
   left: 0px;

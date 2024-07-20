@@ -32,6 +32,36 @@
 		<script type="text/javascript" src="{{ url_for('static', filename='assets/js/browser.min.js')}}"></script>
 		<script type="text/javascript" src="{{ url_for('static', filename='assets/js/breakpoints.min.js')}}"></script>  
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+		<style>
+			#tablePage #sidebar {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 0;
+				overflow-x: hidden;
+				transition: 0.5s;
+			}
+			#sidebar {
+				/* background-color: #90f3f3; */
+				/* background: linear-gradient(to bottom, #007BFF 1%, #90f3f3 100%); */
+				/* background: linear-gradient(to bottom, #0000FF 5%, #800080 100%); */
+				background: linear-gradient(to bottom, #569ae3 1%, #90f3f3 100%);
+				/*width: 310px;  /* 設定主選單的寬度為200像素 */
+			}
+			/* 這將改變整個網頁的滾動條顏色 */
+			::-webkit-scrollbar {
+				width: 12px;  /* 設定滾動條的寬度 */
+			}
+
+			::-webkit-scrollbar-track {
+				background: #ADD8E6;  /* 設定滾動條軌道的顏色 */
+			}
+
+			::-webkit-scrollbar-thumb {
+				background: #ADD8E6;  /* 設定滾動條滑塊的顏色 */
+			}
+
+		</style>
 	</head>
 
 	<body class="is-preload">
@@ -55,16 +85,16 @@
 					<nav id="menu">
 						<header class="major"><h2>Menu</h2></header>
 						<ul>
-							<li><a href="/">Homepage</a></li>
+							<li><a href="/">Homepage🏠</a></li>
 							<!--<li><a href="elements.html">Elements</a></li>-->
-							<li><a data-toggle="modal" data-target="#exampleModal">Navagation</a></li>
-							<li><a class="startmap" >Mapping</a></li>
-							<li><a href="/pathplan">Path Plan</a></li>
-							<li><a href="/webimage">Camera show</a></li>
-							<li><a href="/AIdetect">AI Detect</a></li>
-							<li><a href="/robotControl">RobotControl</a></li>
-							<li><a href="/sqlview">Data Visualization</a></li>
-							<li>
+							<li><a data-toggle="modal" data-target="#exampleModal">Navagation🚗</a></li>
+							<li><a class="startmap" >Mapping🗺️</a></li>
+							<li><a href="/pathplan">Path Plan🧭</a></li>
+							<li><a href="/webimage">Camera show📷</a></li>
+							<li><a href="/AIdetect">AI Detect⭐</a></li>
+							<li><a href="/robotControl">RobotControl🤖</a></li>
+							<li><a href="/sqlview">Data Visualization📊</a></li>
+							<!-- <li>
 								<span class="opener">Outside</span>
 								<ul>
 									<li><a href="#">InsideA</a></li>
@@ -72,30 +102,30 @@
 									<li><a href="#">InsideC</a></li>
 									<li><a href="#">InsideD</a></li>
 								</ul>
-							</li>
+							</li> -->
 						</ul>
+						
 					</nav>
 
 					<!-- Section -->
-					<section>
+					<!-- <section>
 						<header class="major"><h2>Get in touch</h2></header>
-						<p>Sed varius enim lorem ullamcorper dolore aliquam aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin sed aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+						<p>.</p>
 						<ul class="contact">
 							<li class="icon solid fa-envelope"><a href="#">information@untitled.tld</a></li>
 							<li class="icon solid fa-phone">(000) 000-0000</li>
 							<li class="icon solid fa-home">1234 Somewhere Road #8254<br />
 							Nashville, TN 00000-0000</li>
 						</ul>
-					</section>
+					</section> -->
 
 					<!-- Footer -->
-					<footer id="footer">
+					<!-- <footer id="footer">
 						<p class="copyright">&copy; Untitled. All rights reserved. Demo Images: <a href="https://unsplash.com">Unsplash</a>. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
-					</footer>
+					</footer> -->
 
 				</div> <!-- inner -->
 			</div> <!-- sidebar -->
-			
 		</div> <!-- wrapper -->
 		
 		

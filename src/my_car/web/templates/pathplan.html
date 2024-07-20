@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
-
+<header>
+    <style>
+        #main {
+            background-color: #ADD8E6;
+        }
+    </style>
+</header>
 <div style="float:left; width:50%;" id="param">
 	<div style="clear:both; margin:50px 0 0 0 ">
 		<div style="float:left; width:40%;">
@@ -82,70 +88,72 @@
 
 	function myFunction(){
 		path = []
-		ctx.clearRect(0, 0, frame.width, frame.height);		// Clear frame before a new calculate
-		
+		ctx.clearRect(0, 0, frame.width, frame.height); // Clear frame before a new calculate
+
 		// Get parameter from input text
 		shelf_x = parseInt(document.getElementById("inputsx").value);
 		shelf_y = parseInt(document.getElementById("inputsy").value);
 		col_lengh = parseInt(document.getElementById("col_lengh").value);
 		row_lengh = parseInt(document.getElementById("row_lengh").value);
 		num = parseInt(document.getElementById("snum").value);
-		                     
-		var first_point = [	(frame.width-num * shelf_x-(num-1) * col_lengh)/2, 
-							(frame.height-shelf_y)/2]
-		
+
+		var first_point = [(frame.width-num*shelf_x-(num-1)*col_lengh)/2, 
+						(frame.height-shelf_y)/2]
+
 		// Drawing 
 		// --------
-		//ctx.beginPath();
 		pathplan_room = new Path2D();  
 		pathplan_path = new Path2D();
 		// Draw house wall                  
-		pathplan_room.rect(	(frame.width-num*shelf_x-(num-1)*col_lengh)/2-col_lengh, 
-							(frame.height-shelf_y)/2-row_lengh, 
-							(num+1)*col_lengh+num*shelf_x, 
-							2*row_lengh+shelf_y);      	                
-		
+		pathplan_room.rect(first_point[0]-col_lengh, 
+						first_point[1]-row_lengh, 
+						(num+1)*col_lengh+num*shelf_x, 
+						2*row_lengh+shelf_y); 
+
 		// Draw mushroom shelf
 		for (let i = 0; i < num; i++){
 			draw_shelf(first_point[0], first_point[1]);
 			first_point[0] += (shelf_x+col_lengh);
 		}
-		
-		// Draw navigation path
-		pathplan_path.moveTo(path[0][0], path[0][1]);	
 
-		publish_pose(path[0][0], path[0][1], Math.atan2(-path[0][1]+path[1][1], path[0][0]-path[1][0]));  
+		// Draw navigation path
+		pathplan_path.moveTo(path[path.length-1][0], path[path.length-1][1]);  
+
+		publish_pose(path[path.length-1][0], path[path.length-1][1], Math.atan2(-path[path.length-1][1]+path[path.length-2][1], path[path.length-1][0]-path[path.length-2][0]));  
 		var yaw;                              
-		for (let i=1; i<path.length; i++){
+		for (let i=path.length-2; i>=0; i--){
 			pathplan_path.lineTo(path[i][0], path[i][1]);
-			if (i<path.length-1){
-				yaw = Math.atan2(-path[i][1]+path[i+1][1], path[i][0]-path[i+1][0]);
+			if (i>0){
+				yaw = Math.atan2(-path[i][1]+path[i-1][1], path[i][0]-path[i-1][0]);
 			}
 			publish_pose(path[i][0], path[i][1], yaw);
 		}
-		
+
 		ctx.strokeStyle = "black";
 		ctx.stroke(pathplan_room); 
 		ctx.strokeStyle = "red";
 		ctx.stroke(pathplan_path); 
-		
+
 		// Print path points
-		var msg = "[(" + path[0][0] + ", " + path[0][1] + ")";
-		for (let i=1; i<4*num; i++){
+		var msg = "[(" + path[path.length-1][0] + ", " + path[path.length-1][1] + ")";
+		for (let i=path.length-2; i>=0; i--){
 			msg += ", (" + path[i][0] + ", " + path[i][1] + ")";
 		}
 		msg += "]";
 		document.getElementById("path").innerHTML = msg;
 	}
 
+
 	function draw_shelf(begin_x, begin_y){
 		let offset = 30;
 		pathplan_room.rect(begin_x, begin_y, shelf_x, shelf_y);
 		
-		path.push([begin_x-offset, begin_y+shelf_y ]);
+		// Add points on both sides of the shelf
+		path.push([begin_x+shelf_x+offset, begin_y+shelf_y+offset ]); // Start from the lower right corner of the shelf
+		path.push([begin_x-offset, begin_y+shelf_y+offset ]);
 		path.push([begin_x-offset, begin_y-offset ]);
 		path.push([begin_x+shelf_x+offset, begin_y-offset ]);
-		path.push([begin_x+shelf_x+offset, begin_y+shelf_y ]);
+		path.push([begin_x+shelf_x+offset, begin_y+shelf_y+offset ]); // End at the lower right corner of the shelf
 	}
 	
 	function publish_pose(x, y, yaw) {

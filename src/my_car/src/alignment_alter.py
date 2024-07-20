@@ -7,6 +7,7 @@ from tf.transformations import quaternion_multiply, quaternion_from_euler, euler
 from geometry_msgs.msg import Twist
 from move_base_msgs.msg import MoveBaseActionResult
 from math import atan2
+from std_srvs.srv import Trigger, TriggerResponse  # 新增這一行
 
 manual_mode = False
 
@@ -24,6 +25,14 @@ class Alignment():
         self.turn_reach = 0
         self.first = True
         self.static_transformStamped = geometry_msgs.msg.TransformStamped()
+
+        # 新增一個ROS服務
+        self.arm_motion_service = rospy.Service('start_arm_motion', Trigger, self.handle_arm_motion)
+    
+    def handle_arm_motion(self, req):
+        # 當服務被調用時，執行這個函數
+        self.main()
+        return TriggerResponse(success=True, message="Motion completed")
     
     def wait_manual(self, manual_mode):
         if (manual_mode == True): input("Press Enter to continue")  
@@ -313,7 +322,7 @@ class Alignment():
 #========================================================================================
 
 if __name__ == '__main__':
-    rospy.init_node('alignment')
+    rospy.init_node('alignment_alter')
     alignment = Alignment()
     print("Waiting...")
     
