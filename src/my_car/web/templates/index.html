@@ -20,6 +20,45 @@
 		.slider {
 		background-color: #ADD8E6; /* 這是淺灰色的代碼 */
 		}
+		/* 基本全局樣式設置 */
+		html, body {
+			height: 100%;        /* 保證高度填充 */
+			margin: 0;           /* 移除預設外邊距 */
+			padding: 0;          /* 移除預設內邊距 */
+			box-sizing: border-box; /* 避免內外邊距影響佈局 */
+		}
+
+		/* 主容器，避免頁面內容貼到底部 */
+		main {
+			min-height: 100vh; /* 保證頁面至少填滿視窗 */
+			display: flex;     /* 使用 flex 布局 */
+			flex-direction: column;
+			padding-bottom: 50px; /* 頁面底部空間 */
+		}
+
+		/* Banner 樣式 */
+		#banner {
+			max-width: 1200px; /* 限制內容寬度 */
+			margin: 0 auto;    /* 內容水平置中 */
+			padding: 20px 10% 80px; /* 上、左右、下的內邊距 */
+			box-sizing: border-box;
+			text-align: left;
+		}
+
+		/* 圖片設置 */
+		#esdl-image {
+			max-width: 80%;    /* 圖片最大寬度為 80% */
+			height: auto;      /* 等比例縮放 */
+			display: block;    /* 移除內聯空隙 */
+			margin: 0 auto;    /* 置中 */
+		}
+
+		/* 小螢幕適配 */
+		@media (max-width: 768px) {
+			#banner {
+				padding: 10px 5% 50px; /* 調整小螢幕內邊距 */
+			}
+		}
 	</style>
 </header>
 
@@ -84,7 +123,7 @@
 		
 	</div> <!-- content -->
 	<span class="image object">
-		<img src="{{url_for('static', filename='img/ESDL_CAR_v2-3.jpg')}}" alt="" width="300" height="200"/>
+		<img src="{{url_for('static', filename='img/ESDL_CAR_v3-3.jpg')}}" alt="ESDL CAR"/>
 	</span>
 </section><!-- banner -->	
 			

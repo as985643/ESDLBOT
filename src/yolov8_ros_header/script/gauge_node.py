@@ -141,7 +141,8 @@ def image_callback(msg):
                                          [transform.transform.translation.x + 1, transform.transform.translation.y + 1], 
                                          [transform.transform.translation.x, transform.transform.translation.y + 1]])
                 
-                image_b4_color = correct_perspective(image_b4_color, tag.corners, dst_points)
+                # image_b4_color = correct_perspective(image_b4_color, tag.corners, dst_points)
+                image_b4_color = correct_perspective(image_b4_color, tag.corners)
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
                 pass
             

@@ -279,7 +279,7 @@ def uploads():
         elif model_choice == 'digital_meter':
             model_path = 'static/weights/digital_meter_v3.pt'
         elif model_choice == 'count_mushrooms':
-            model_path = 'static/weights/count_mushrooms_v3.pt'
+            model_path = 'static/weights/count_mushrooms_v4.pt'
         elif model_choice == 'pollution':
             model_path = 'static/weights/pollution.pt'
         else:
@@ -637,4 +637,5 @@ if __name__ == '__main__':
 	subprocess.Popen(["roslaunch", "rosbridge_server", "rosbridge_websocket.launch"])
 	subprocess.Popen(["rosrun", "robot_pose_publisher", "robot_pose_publisher"])
 	
-	app.run(host='0.0.0.0', port=8000, debug=False)
+	app.run(host='0.0.0.0', port=8888, debug=True)
+	# app.run(host='192.168.1.180', port=8000, debug=False)

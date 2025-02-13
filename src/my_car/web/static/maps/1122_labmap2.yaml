@@ -1,0 +1,7 @@
+image: /home/esdl/feng_ws/src/my_car/web/static/maps/1122_labmap2.pgm
+resolution: 0.050000
+origin: [-7.001688, -5.551273, 0.000000]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+

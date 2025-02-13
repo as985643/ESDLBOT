@@ -7,3 +7,19 @@ planner_frequency: 5.0
 oscillation_timeout: 10.0
 oscillation_distance: 0.2
 
+# 添加恢复行为
+recovery_behaviors:
+  - name: clear_costmap_recovery
+    type: "clear_costmap_recovery/ClearCostmapRecovery"
+  - name: rotate_recovery
+    type: "rotate_recovery/RotateRecovery"
+
+# 配置 ClearCostmapRecovery 行为的参数
+ClearCostmapRecovery:
+  reset_distance: 2.0  # 重新设置障碍物清理范围，单位为米
+
+# 配置 RotateRecovery 行为的参数
+RotateRecovery:
+  max_rotational_velocity: 1.0  # 最大旋转速度
+  min_rotational_velocity: 0.4  # 最小旋转速度
+  rotation_while_stuck: true   # 启用旋转以尝试脱困

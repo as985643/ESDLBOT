@@ -269,6 +269,22 @@ class mySQL:
 			cursor.close()
 			conn.close()
 
+	def del_by_area(self, area_name):
+		# 根據 area 刪除所有符合條件的資料
+		try:
+			conn = psycopg2.connect(**DATABASE_URL, sslmode='require')  # 連接 Postgresql
+			cursor = conn.cursor()
+			cursor.execute(f"""DELETE FROM {self.table_name} WHERE area = %s""", (area_name,))
+			conn.commit()
+			count = cursor.rowcount
+			print(f"{count} records successfully deleted from table where area = {area_name}.")
+		except Exception as e:
+			print(e)
+			return "error"
+		finally:
+			cursor.close()
+			conn.close()
+
 #### test ######## test  ######## test ######## test ######## test ######## test ######## test ########
 if __name__ == '__main__':
 	def main():
@@ -393,6 +409,8 @@ if __name__ == '__main__':
 		#	colnames = [desc[0] for desc in cursor.description]
 		#	print(colnames)										# 所有列值以 list 紀錄
 		#	time.sleep(1)
+		
+		# sql.del_by_area("A9")
 
 
 #### test ######## test  ######## test ######## test ######## test ######## test ######## test ########

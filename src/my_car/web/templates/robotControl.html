@@ -1,15 +1,37 @@
 {% extends "layout.html" %}
 {% block content %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/nipple.min.js')}}"></script>
-<script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
-<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+<!-- <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script> -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/eventemitter2.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/roslib.min.js') }}"></script>
+
 <header>
     <style>
         #main {
             background-color: #ADD8E6;
         }
+        /* 手機樣式 */
+        @media (max-width: 755px) {
+            #parentContainer {
+                flex-direction: column;
+                align-items: center;
+            }
+            #inner, #servoControl {
+                width: 100%;
+                margin: 0;
+            }
+            #servoControl {
+                margin-top: 250px;
+            }
+            #zonejoystick {
+                right: 10%;
+                bottom: 10%;
+            }
+        }
     </style>
 </header>
+
 <div style="float:left; width:50%;" id="param">
 	<div style="clear:both; margin:50px 0 0 0 ">
 		<div style="float:left; width:40%;">
@@ -18,7 +40,7 @@
 	</div>
 </div>
 
-			
+
 <div style="float:left; width:100%;">
 	<button id="btnup" onclick="upFunction()" >上升</button>
 	<button id="btndown" onclick="downFunction()" >下降</button>
@@ -26,6 +48,24 @@
 </div>
 <img width="70%" id="image_sub" style="transform:rotate(0deg);"/>
 <div id="zonejoystick" class="joy-stick"></div>
+
+<body>
+    <div id="parentContainer" style="display: flex; align-items: flex-start;">
+        <div id="inner" style="flex: 1; display: flex; justify-content: center;">
+            <img id="image_sub" src="" style="width: 100%; max-width: 500px;" />
+        </div>
+        <div id="servoControl" style="position: absolute; top: 160px; right: 200px; width: 200px;">
+            <label for="panServoSlider">水平伺服馬達角度:</label>
+            <input type="range" id="panServoSlider" min="0" max="180" value="0" oninput="updatePanServoAngle(this.value)">
+            <span id="panServoAngle">0</span>°
+            <br><br>
+            <label for="tiltServoSlider">垂直伺服馬達角度:</label>
+            <input type="range" id="tiltServoSlider" min="60" max="120" value="90" oninput="updateTiltServoAngle(this.value)">
+            <span id="tiltServoAngle">90</span>°
+        </div>
+    </div>
+    <div id="zonejoystick" class="joy-stick" style="position: absolute; right: 20%; bottom: 20%;"></div>
+</body>
 
 <!-- Scripts -->
 
@@ -37,19 +77,96 @@
 	var ros = new ROSLIB.Ros({
 		url: `ws://${ip}:9090`
 	});
+
+    console.log(`Connecting to ROS on ${ip}`);
 	
-	var goal_pub;		// publisher object
+	var goal_pub; // publisher object
+    var pan_pub; // publisher object for pan servo
+    var tilt_pub; // publisher object for tilt servo
+
+    ros.on('connection', function() {
+        console.log('Connected to websocket server.');
+
+        // 初始化 publisher 物件
+        pan_pub = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pan_servo_angle',
+            messageType: 'std_msgs/UInt16'
+        });
+        tilt_pub = new ROSLIB.Topic({
+            ros: ros,
+            name: '/tilt_servo_angle',
+            messageType: 'std_msgs/UInt16'
+        });
+        // Set up publisher for elevating position
+        goal_pub = new ROSLIB.Topic({
+            ros: ros,
+            name: '/elevating_pos',
+            messageType: 'std_msgs/Float64'
+        });
+
+        // 訂閱攝影機影像話題
+        var listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/usb_cam/image_raw/compressed',
+            messageType: 'sensor_msgs/CompressedImage'
+        });
+        listener.subscribe(function(message) {
+            console.log('Received message on ' + listener.name);
+            document.getElementById('image_sub').src = "data:image/jpeg;base64," + message.data;
+        });
+
+        console.log('Set publishers and started listening to topics.');
+        // console.log('Set publishers.');
+        });
+
+    // 將創建 Joystick 的函數放到 onload 裡，確保頁面載入後執行
+    window.onload = function() {
+        createJoystick();
+        console.log("Joystick created. Waiting for ROS connection.");
+    }
+
+    let lastPanAngle = 90;
+    let lastTiltAngle = 90;
+    const debounceTime = 200; // 增加去抖动时间到200ms
+    let panTimeout, tiltTimeout;
+
+    function updatePanServoAngle(angle) {
+        angle = Math.max(0, Math.min(180, angle)); // 限制角度在30到150度之间
+        document.getElementById("panServoAngle").innerText = angle;
+        clearTimeout(panTimeout);
+        panTimeout = setTimeout(() => {
+            if (Math.abs(angle - lastPanAngle) > 1) { // Only update if the change is significant
+                var angle_msg = new ROSLIB.Message({data: parseInt(angle)});
+                pan_pub.publish(angle_msg);
+                lastPanAngle = angle;
+            }
+        }, debounceTime);
+    }
+
+    function updateTiltServoAngle(angle) {
+        angle = Math.max(60, Math.min(120, angle)); // 限制角度在60到120度之间
+        document.getElementById("tiltServoAngle").innerText = angle;
+        clearTimeout(tiltTimeout);
+        tiltTimeout = setTimeout(() => {
+            if (Math.abs(angle - lastTiltAngle) > 1) { // Only update if the change is significant
+                var angle_msg = new ROSLIB.Message({data: parseInt(angle)});
+                tilt_pub.publish(angle_msg);
+                lastTiltAngle = angle;
+            }
+        }, debounceTime);
+    }
 	
-	ros.on('connection', function() {
-		console.log('Connected to websocket server.');
-		goal_pub = new ROSLIB.Topic({
-			ros: ros,
-			name: '/elevating_pos',
-			messageType: 'std_msgs/Float64'
-		});
+	// ros.on('connection', function() {
+	// 	console.log('Connected to websocket server.');
+	// 	goal_pub = new ROSLIB.Topic({
+	// 		ros: ros,
+	// 		name: '/elevating_pos',
+	// 		messageType: 'std_msgs/Float64'
+	// 	});
 		
-		console.log('Set publisher.');
-	});
+	// 	console.log('Set publisher.');
+	// });
 
 	
 	function upFunction(){
@@ -77,15 +194,15 @@
 	// }
 	
 	// Camera
-	var listener = new ROSLIB.Topic({
-	ros : ros,
-	name : '/usb_cam/image_raw/compressed',
-	messageType : 'sensor_msgs/CompressedImage'
-	});
-	listener.subscribe(function(message) {
-	console.log('Received message on ' + listener.name);
-	document.getElementById('image_sub').src = "data:image/jpeg;base64," + message.data;
-	});
+	// var listener = new ROSLIB.Topic({
+	// ros : ros,
+	// name : '/usb_cam/image_raw/compressed',
+	// messageType : 'sensor_msgs/CompressedImage'
+	// });
+	// listener.subscribe(function(message) {
+	// console.log('Received message on ' + listener.name);
+	// document.getElementById('image_sub').src = "data:image/jpeg;base64," + message.data;
+	// });
 	
 	// Joy-Stick //
 	cmd_vel_listener = new ROSLIB.Topic({
@@ -147,6 +264,8 @@
     }
      window.onload = function() {
         createJoystick();
+        // ros.connect(`ws://${ip}:9090`);
+        console.log("ROS connection initiated.");
     }
 
 	

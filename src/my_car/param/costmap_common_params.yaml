@@ -1,13 +1,14 @@
-obstacle_range: 3.0
-raytrace_range: 3.5
+obstacle_range: 2.5       # orgin 3.0 -> 2.5
+raytrace_range: 3.0       # orgin 3.5
 
 footprint: [[-0.25, -0.13], [-0.25, 0.13], [0.05, 0.13], [0.05, -0.13]]
 #robot_radius: 0.105
 
-inflation_radius: 0.2
-cost_scaling_factor: 3.0
+inflation_radius: 0.5      # orgin 0.2 -> 0.1 -> 0.5 (膨胀障碍物的距离)
+cost_scaling_factor: 2.5   # orgin 3.0
 
 map_type: costmap
 observation_sources: scan
 scan: {sensor_frame: laser_frame, data_type: LaserScan, topic: scan, marking: true, clearing: true}
 
+combination_method: 1  # 最大值清除法
